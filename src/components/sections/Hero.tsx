@@ -93,7 +93,7 @@ export function Hero() {
         className="relative z-10 mt-20 w-full max-w-5xl"
       >
         <GlowImageFrame
-          src="/caruso-ui-mockup.png"
+          src={`${import.meta.env.BASE_URL}caruso-ui-mockup.png`}
           alt="CARUSO Data Marketplace product screenshot"
           label="CARUSO UI Preview"
           float

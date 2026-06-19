@@ -55,7 +55,7 @@ export function TachometerBackground({ onComplete }: TachometerBackgroundProps) 
   useEffect(() => {
     const controls = mAnimate(rpm, 9400, {
       duration: 1.5,
-      ease: EASE_PREMIUM as Parameters<typeof mAnimate>[2]["ease"],
+      ease: EASE_PREMIUM as never,
       delay: 0.3,
     });
     const timeout = setTimeout(() => onComplete?.(), 1900);

@@ -192,7 +192,7 @@ export function MapPreview() {
           className="absolute inset-0 origin-top-left will-change-transform"
           style={{ transform: `translate(${pan.x}px,${pan.y}px) scale(${zoom})` }}
         >
-          <img src="/journey-map.jpg" alt="CARUSO Map" draggable={false}
+          <img src={`${import.meta.env.BASE_URL}journey-map.jpg`} alt="CARUSO Map" draggable={false}
             className="h-full w-full object-cover object-center"
             style={{ filter: "brightness(0.84) saturate(0.88)" }} />
 
