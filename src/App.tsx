@@ -3,16 +3,20 @@ import { FeatureBentoGrid } from "./components/sections/FeatureBentoGrid";
 import { PlatformHighlights } from "./components/sections/PlatformHighlights";
 import { DataFlowBanner } from "./components/sections/DataFlowBanner";
 import { Footer } from "./components/sections/Footer";
+import { Navbar } from "./components/ui/Navbar";
 
 function App() {
   return (
-    <main className="bg-ink">
-      <Hero />
-      <FeatureBentoGrid />
-      <PlatformHighlights />
-      <DataFlowBanner />
-      <Footer />
-    </main>
+    <div className="bg-ink scroll-smooth">
+      <Navbar />
+      <main>
+        <Hero />
+        <FeatureBentoGrid />
+        <PlatformHighlights />
+        <DataFlowBanner />
+        <Footer />
+      </main>
+    </div>
   );
 }
 

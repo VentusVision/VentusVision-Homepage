@@ -1,19 +1,34 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { fadeUp, springSnappy, staggerContainer, staggerWords, wordReveal } from "../../lib/motion";
 import { GlowImageFrame } from "../ui/GlowImageFrame";
+import { OBDTerminal } from "../ui/OBDTerminal";
 
 const HEADLINE = ["The", "Future", "of", "Vehicle", "Data,", "Marketplace-Ready."];
 
 export function Hero() {
-  return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ink px-6 pb-24 pt-32 text-white">
-      <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]" />
+  const [phase, setPhase] = useState<"terminal" | "hero">("terminal");
 
+  return (
+    <section
+      id="home"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ink px-6 pb-24 pt-32 text-white"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-[140px]" />
+
+      {/* OBD terminal overlay */}
+      <AnimatePresence>
+        {phase === "terminal" && (
+          <OBDTerminal onComplete={() => setPhase("hero")} />
+        )}
+      </AnimatePresence>
+
+      {/* Hero content — animates in once terminal exits */}
       <motion.div
         initial="hidden"
-        animate="visible"
+        animate={phase === "hero" ? "visible" : "hidden"}
         variants={staggerContainer}
         className="relative z-10 flex flex-col items-center text-center"
       >
@@ -73,8 +88,8 @@ export function Hero() {
 
       <motion.div
         initial={{ opacity: 0, y: 60 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        animate={phase === "hero" ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
+        transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 mt-20 w-full max-w-5xl"
       >
         <GlowImageFrame

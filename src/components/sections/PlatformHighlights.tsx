@@ -1,15 +1,9 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { GlowImageFrame } from "../ui/GlowImageFrame";
-import { RoutePulse } from "../ui/RoutePulse";
+import { DataExplorerPreview } from "../ui/DataExplorerPreview";
+import { MapPreview } from "../ui/MapPreview";
 import { EASE_PREMIUM } from "../../lib/motion";
-
-const CITY_LOOP = [
-  { top: "42%", left: "32%" },
-  { top: "24%", left: "52%" },
-  { top: "42%", left: "72%" },
-  { top: "58%", left: "52%" },
-];
 
 interface Highlight {
   eyebrow: string;
@@ -18,7 +12,10 @@ interface Highlight {
   imageLabel: string;
   imageSrc?: string;
   overlay?: ReactNode;
+  preview?: ReactNode;
   reverse?: boolean;
+  wide?: boolean;
+  frameHeight?: string;
 }
 
 const HIGHLIGHTS: Highlight[] = [
@@ -26,8 +23,10 @@ const HIGHLIGHTS: Highlight[] = [
     eyebrow: "Data Explorer",
     title: "Real-Time Analytics",
     description:
-      "Our Data Explorer surfaces immediate insights into category distribution as records flow in — no batch jobs, no stale dashboards, just a live read on what's moving through the marketplace right now.",
+      "An interactive bar chart showing data availability across car manufacturers — filter by channel (B2B / B2C), status, and one of 10 color-coded categories. Hover bars to see exact counts, click to jump straight into the pre-filtered catalog.",
     imageLabel: "Real-Time Analytics Preview",
+    preview: <DataExplorerPreview />,
+    wide: true,
   },
   {
     eyebrow: "Journey Map",
@@ -35,18 +34,43 @@ const HIGHLIGHTS: Highlight[] = [
     description:
       "We turned the B2B data catalog into something you'd actually want to explore: a 3D isometric city where every district maps to a real use-case, gamifying discovery instead of burying it in a spec sheet.",
     imageLabel: "Interactive Journey Map Preview",
-    imageSrc: "/journey-map.png",
-    overlay: (
-      <>
-        <RoutePulse path={CITY_LOOP} duration={9} delay={0} />
-        <RoutePulse path={CITY_LOOP} duration={9} delay={4.5} />
-      </>
-    ),
-    reverse: true,
+    preview: <MapPreview />,
+    wide: true,
+    frameHeight: "h-[600px]",
   },
 ];
 
-function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overlay, reverse }: Highlight) {
+function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overlay, preview, reverse, wide, frameHeight }: Highlight) {
+  if (wide) {
+    return (
+      <div className="flex flex-col gap-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.7, ease: EASE_PREMIUM }}
+          className="max-w-2xl"
+        >
+          <span className="text-sm font-medium uppercase tracking-[0.3em] text-cyan-300/70">{eyebrow}</span>
+          <h3 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h3>
+          <p className="mt-5 text-lg text-white/50">{description}</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.75, ease: EASE_PREMIUM, delay: 0.1 }}
+        >
+          <GlowImageFrame src={imageSrc} alt={title} label={imageLabel} flat className={`${frameHeight ?? "h-[480px]"} w-full`}>
+            {preview}
+            {overlay}
+          </GlowImageFrame>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
       <motion.div
@@ -69,6 +93,7 @@ function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overl
         className={reverse ? "lg:order-1" : undefined}
       >
         <GlowImageFrame src={imageSrc} alt={title} label={imageLabel} className="h-72 w-full sm:h-96">
+          {preview}
           {overlay}
         </GlowImageFrame>
       </motion.div>
@@ -78,8 +103,8 @@ function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overl
 
 export function PlatformHighlights() {
   return (
-    <section className="relative bg-ink px-6 py-28 text-white">
-      <div className="mx-auto max-w-6xl space-y-24">
+    <section id="platform" className="relative bg-ink px-6 py-28 text-white">
+      <div className="mx-auto max-w-7xl space-y-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -15,7 +15,7 @@ export function DataFlowBanner() {
   const items = [...DATA_STREAMS, ...DATA_STREAMS];
 
   return (
-    <section className="relative overflow-hidden border-y border-white/10 bg-ink py-8">
+    <section id="data" className="relative overflow-hidden border-y border-white/10 bg-ink py-8">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-32 bg-gradient-to-r from-ink to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-32 bg-gradient-to-l from-ink to-transparent" />
 
