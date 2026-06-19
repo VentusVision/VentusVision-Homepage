@@ -6,6 +6,7 @@ import { MapPreview } from "../ui/MapPreview";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 interface Highlight {
+  id: string;
   eyebrow: string;
   title: string;
   description: string;
@@ -20,6 +21,7 @@ interface Highlight {
 
 const HIGHLIGHTS: Highlight[] = [
   {
+    id: "explorer",
     eyebrow: "Data Explorer",
     title: "Real-Time Analytics",
     description:
@@ -29,6 +31,7 @@ const HIGHLIGHTS: Highlight[] = [
     wide: true,
   },
   {
+    id: "map",
     eyebrow: "Journey Map",
     title: "Interactive Journey Map",
     description:
@@ -40,10 +43,10 @@ const HIGHLIGHTS: Highlight[] = [
   },
 ];
 
-function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overlay, preview, reverse, wide, frameHeight }: Highlight) {
+function HighlightRow({ id, eyebrow, title, description, imageLabel, imageSrc, overlay, preview, reverse, wide, frameHeight }: Highlight) {
   if (wide) {
     return (
-      <div className="flex flex-col gap-10">
+      <div id={id} className="flex flex-col gap-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -103,7 +106,7 @@ function HighlightRow({ eyebrow, title, description, imageLabel, imageSrc, overl
 
 export function PlatformHighlights() {
   return (
-    <section id="platform" className="relative bg-ink px-6 py-28 text-white">
+    <section className="relative bg-ink px-6 py-28 text-white">
       <div className="mx-auto max-w-7xl space-y-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

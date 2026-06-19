@@ -5,10 +5,10 @@ import { cn } from "../../lib/utils";
 import { EASE_PREMIUM, springSnappy } from "../../lib/motion";
 
 const NAV_LINKS = [
-  { label: "Home", href: "#home" },
-  { label: "Features", href: "#features" },
-  { label: "Platform", href: "#platform" },
-  { label: "Data Streams", href: "#data" },
+  { label: "Home",          href: "#home"     },
+  { label: "Data Catalog",  href: "#catalog"  },
+  { label: "Data Explorer", href: "#explorer" },
+  { label: "Map Explorer",  href: "#map"      },
 ] as const;
 
 export function Navbar() {
@@ -97,7 +97,7 @@ export function Navbar() {
         {/* CTA */}
         <div className="hidden items-center md:flex">
           <motion.a
-            href="#features"
+            href="#catalog"
             whileHover={{ scale: 1.04, boxShadow: "0 0 40px rgba(34,211,238,0.45)" }}
             whileTap={{ scale: 0.97 }}
             transition={springSnappy}
@@ -141,7 +141,7 @@ export function Navbar() {
                 </a>
               ))}
               <a
-                href="#features"
+                href="#catalog"
                 onClick={() => setMobileOpen(false)}
                 className="mt-2 rounded-full bg-cyan-400 px-5 py-2.5 text-center text-sm font-semibold text-black"
               >

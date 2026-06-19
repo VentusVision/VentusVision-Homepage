@@ -67,7 +67,8 @@ export function Hero() {
         </motion.p>
 
         <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <motion.button
+          <motion.a
+            href="#catalog"
             whileHover={{ scale: 1.04, boxShadow: "0 0 40px rgba(34,211,238,0.45)" }}
             whileTap={{ scale: 0.97 }}
             transition={springSnappy}
@@ -75,15 +76,16 @@ export function Hero() {
           >
             Explore the Marketplace
             <ArrowRight className="h-4 w-4" />
-          </motion.button>
-          <motion.button
+          </motion.a>
+          <motion.a
+            href="#explorer"
             whileHover={{ scale: 1.04, borderColor: "rgba(34,211,238,0.6)" }}
             whileTap={{ scale: 0.97 }}
             transition={springSnappy}
             className="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-white/80 backdrop-blur-md"
           >
-            Read the Docs
-          </motion.button>
+            See the Platform
+          </motion.a>
         </motion.div>
       </motion.div>
 

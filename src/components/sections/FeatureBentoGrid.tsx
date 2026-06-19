@@ -640,7 +640,7 @@ const STAGGER = {
 
 export function FeatureBentoGrid() {
   return (
-    <section id="features" className="relative bg-ink px-6 py-28 text-white">
+    <section id="catalog" className="relative bg-ink px-6 py-28 text-white">
       <div className="mx-auto max-w-6xl">
 
         <motion.div
