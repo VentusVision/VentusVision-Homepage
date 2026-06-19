@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { fadeUp, springSnappy, staggerContainer, staggerWords, wordReveal } from "../../lib/motion";
-import { GlowImageFrame } from "../ui/GlowImageFrame";
+import { MonitorFrame } from "../ui/MonitorFrame";
+import { HeroTripleDash } from "../ui/HeroTripleDash";
 import { OBDTerminal } from "../ui/OBDTerminal";
 
 const HEADLINE = ["The", "Future", "of", "Vehicle", "Data,", "Marketplace-Ready."];
@@ -87,18 +88,14 @@ export function Hero() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 60 }}
-        animate={phase === "hero" ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
-        transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 mt-20 w-full max-w-5xl"
+        initial={{ opacity: 0, y: 80 }}
+        animate={phase === "hero" ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
+        transition={{ duration: 1.1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 mt-20 w-[92vw] max-w-[1400px]"
       >
-        <GlowImageFrame
-          src={`${import.meta.env.BASE_URL}caruso-ui-mockup.png`}
-          alt="CARUSO Data Marketplace product screenshot"
-          label="CARUSO UI Preview"
-          float
-          className="h-[420px] w-full sm:h-[480px]"
-        />
+        <MonitorFrame>
+          <HeroTripleDash />
+        </MonitorFrame>
       </motion.div>
     </section>
   );

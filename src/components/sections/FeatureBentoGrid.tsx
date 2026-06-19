@@ -291,7 +291,7 @@ function ProductCard({ title, status, types, oems, description, Icon, color, del
 // Card 1 — Product Catalog
 // ─────────────────────────────────────────────
 
-function CatalogPreview() {
+export function CatalogPreview() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const [searchIdx, setSearchIdx] = useState(0);
