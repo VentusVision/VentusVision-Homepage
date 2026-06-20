@@ -1159,9 +1159,8 @@ function ProductCard({
   oems,
   description,
   Icon,
-  color,
   delay,
-}: Product & { delay: number }) {
+}: Omit<Product, "color"> & { delay: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

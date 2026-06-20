@@ -38,7 +38,10 @@ export function GlowImageFrame({ src, alt, label, float = false, flat = false, c
     <motion.div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={flat ? undefined : { rotateX, rotateY, transformPerspective: 800 }}
+      style={flat
+        ? { boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.12), 0 32px 80px rgba(37,99,235,0.08), 0 48px 100px rgba(15,23,42,0.08)" }
+        : { rotateX, rotateY, transformPerspective: 800, boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.12), 0 32px 80px rgba(37,99,235,0.08), 0 48px 100px rgba(15,23,42,0.08)" }
+      }
       animate={float ? floatLoop.animate : undefined}
       transition={float ? floatLoop.transition : undefined}
       whileHover={
@@ -46,9 +49,6 @@ export function GlowImageFrame({ src, alt, label, float = false, flat = false, c
           ? { y: -3, boxShadow: "0 16px 48px rgba(15,23,42,0.12), 0 0 0 1px rgba(37,99,235,0.12)" }
           : { scale: 1.015, boxShadow: "0 0 120px rgba(37,99,235,0.25)" }
       }
-      style={{
-        boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.12), 0 32px 80px rgba(37,99,235,0.08), 0 48px 100px rgba(15,23,42,0.08)",
-      }}
       className={cn(
         "relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface",
         className,
