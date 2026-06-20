@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+import { useState, useEffect} from "react";
+>>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { MonitorFrame } from "../ui/MonitorFrame";
