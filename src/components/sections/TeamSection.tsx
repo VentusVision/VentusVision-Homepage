@@ -163,7 +163,7 @@ export function TeamSection() {
   const inView = useInView(ref, { once: true, margin: "-80px 0px" });
 
   return (
-    <section ref={ref} className="relative overflow-hidden border-t border-border bg-base px-6 py-24">
+    <section ref={ref} id="team" className="relative overflow-hidden border-t border-border bg-base px-6 py-24">
 
       {/* Subtle radial glow behind constellation */}
       <div

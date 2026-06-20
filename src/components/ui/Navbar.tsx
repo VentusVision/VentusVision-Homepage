@@ -10,6 +10,7 @@ const NAV_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
   { label: "Data Catalog",  href: "#catalog",  Icon: Database  },
   { label: "Data Explorer", href: "#explorer", Icon: BarChart3 },
   { label: "Map Explorer",  href: "#map",      Icon: Map       },
+  { label: "Team",          href: "#team",     Icon: Users     },
 ];
 
 export function Navbar() {

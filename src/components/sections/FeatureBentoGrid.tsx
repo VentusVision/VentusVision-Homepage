@@ -1118,7 +1118,7 @@ function TypedSearch({ term }: { term: string }) {
   }, [term]);
   return (
     <span>
-      <span className="text-white/65">{shown}</span>
+      <span className="text-fg-muted">{shown}</span>
       <motion.span
         animate={{ opacity: [1, 0] }}
         transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse" }}
@@ -1171,14 +1171,11 @@ function ProductCard({
     >
       {/* Title + icon */}
       <div className="flex items-start justify-between gap-1">
-        <p className="text-[9.5px] font-bold leading-snug text-white">
+        <p className="text-[9.5px] font-bold leading-snug text-fg">
           {title}
         </p>
-        <span
-          className="mt-0.5 shrink-0 rounded-md p-1.5"
-          style={{ backgroundColor: color + "1e" }}
-        >
-          <Icon className="h-2.5 w-2.5" style={{ color }} />
+        <span className="mt-0.5 shrink-0 rounded-md bg-brand-subtle p-2">
+          <Icon className="h-3 w-3 text-brand" />
         </span>
       </div>
 
@@ -1210,7 +1207,7 @@ function ProductCard({
       </div>
 
       {/* Description */}
-      <p className="mt-3 line-clamp-2 text-[7.5px] leading-[1.55] text-white/35">
+      <p className="mt-3 line-clamp-2 text-[7.5px] leading-[1.55] text-fg-muted">
         {description}
       </p>
 
@@ -1220,7 +1217,7 @@ function ProductCard({
           {oems.slice(0, 2).map((oem) => (
             <span
               key={oem}
-              className="rounded border border-white/[0.08] px-1 py-[1px] font-mono text-[5.5px] uppercase tracking-wide text-white/28"
+              className="rounded border border-white/[0.08] px-1 py-[1px] font-mono text-[5.5px] uppercase tracking-wide text-fg-subtle"
             >
               {oem}
             </span>
@@ -1271,10 +1268,10 @@ export function CatalogPreview() {
           {inView && <TypedSearch term={SEARCH_TERMS[searchIdx]} />}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-white/35">
+          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-fg-muted">
             Filter ▾
           </span>
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-white/35">
+          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-fg-muted">
             CSV
           </span>
           <span className="rounded-full bg-cyan-500/75 px-2.5 py-0.5 text-[8px] font-semibold text-black">
@@ -1285,7 +1282,7 @@ export function CatalogPreview() {
 
       {/* Category pills */}
       <div className="flex shrink-0 items-center gap-1.5 overflow-hidden border-b border-white/[0.05] px-4 py-2">
-        <span className="shrink-0 font-mono text-[7px] uppercase tracking-widest text-white/22">
+        <span className="shrink-0 font-mono text-[7px] uppercase tracking-widest text-fg-subtle">
           CATEGORIES:
         </span>
         <div className="flex gap-1.5 overflow-hidden">
@@ -1504,7 +1501,7 @@ function DetailPreview() {
             <Battery className="h-5 w-5 text-brand" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-bold leading-tight text-white">
+            <p className="text-[12px] font-bold leading-tight text-fg">
               Battery Care Mode
             </p>
             <div className="mt-1 flex items-center gap-1">
@@ -1540,10 +1537,10 @@ function DetailPreview() {
           { label: "Status", value: "AVAILABLE" },
         ].map(({ label, value }) => (
           <div key={label} className="px-3 py-2 text-center">
-            <p className="font-mono text-[6.5px] uppercase tracking-widest text-white/22">
+            <p className="font-mono text-[6.5px] uppercase tracking-widest text-fg-subtle">
               {label}
             </p>
-            <p className="mt-0.5 truncate text-[8px] font-bold text-white/60">
+            <p className="mt-0.5 truncate text-[8px] font-bold text-fg-muted">
               {value}
             </p>
           </div>
@@ -1555,7 +1552,7 @@ function DetailPreview() {
           <code className="font-mono text-[9px] text-cyan-300/65">
             batterycaremode
           </code>
-          <Copy className="h-3 w-3 text-white/22" />
+          <Copy className="h-3 w-3 text-fg-subtle" />
         </div>
       </div>
     </div>
@@ -1623,7 +1620,7 @@ function CartPreview() {
               "flex-1 py-2 text-[9px] font-semibold transition-colors",
               tab === t
                 ? "border-b-2 border-cyan-400 text-cyan-300"
-                : "text-white/28 hover:text-white/50",
+                : "text-fg-subtle hover:text-fg-muted",
             )}
           >
             {t === "requests" ? "My Requests" : "Orders"}
@@ -1651,10 +1648,10 @@ function CartPreview() {
                   >
                     <Check className="h-5 w-5 text-green-400" />
                   </motion.div>
-                  <p className="text-[11px] font-semibold text-white/65">
+                  <p className="text-[11px] font-semibold text-fg-muted">
                     Order placed!
                   </p>
-                  <p className="text-[9px] text-white/30">
+                  <p className="text-[9px] text-fg-subtle">
                     Saved to order history
                   </p>
                 </div>
@@ -1677,10 +1674,10 @@ function CartPreview() {
                           className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2"
                         >
                           <div>
-                            <p className="text-[9px] font-semibold text-white">
+                            <p className="text-[9px] font-semibold text-fg">
                               {item.title}
                             </p>
-                            <p className="text-[8px] text-white/32">
+                            <p className="text-[8px] text-fg-subtle">
                               {item.price}
                             </p>
                           </div>
@@ -1691,8 +1688,8 @@ function CartPreview() {
                   </div>
                   <div className="shrink-0 border-t border-white/[0.05] px-3 pb-3 pt-2.5">
                     <div className="mb-2.5 flex items-center justify-between">
-                      <span className="text-[9px] text-white/38">Total</span>
-                      <span className="text-[12px] font-extrabold text-white">
+                      <span className="text-[9px] text-fg-subtle">Total</span>
+                      <span className="text-[12px] font-extrabold text-fg">
                         {items.length}.00 EUR
                       </span>
                     </div>
@@ -1731,7 +1728,7 @@ function CartPreview() {
             >
               <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-white">
+                  <span className="text-[9px] font-bold text-fg">
                     Order #001
                   </span>
                   <span className="text-[9px] font-semibold text-cyan-300">
@@ -1740,14 +1737,14 @@ function CartPreview() {
                 </div>
                 <div className="mt-2 space-y-1">
                   {CART_ITEMS.map((item) => (
-                    <p key={item.id} className="text-[8px] text-white/35">
+                    <p key={item.id} className="text-[8px] text-fg-muted">
                       · {item.title}
                     </p>
                   ))}
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <Clock className="h-2.5 w-2.5 text-white/20" />
-                  <span className="text-[7px] text-white/20">just now</span>
+                  <Clock className="h-2.5 w-2.5 text-fg-subtle" />
+                  <span className="text-[7px] text-fg-subtle">just now</span>
                   <span className="ml-auto rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">
                     COMPLETED
                   </span>
@@ -1781,8 +1778,9 @@ const STAGGER = {
 
 export function FeatureBentoGrid() {
   return (
-    <section id="catalog" className="relative bg-ink px-6 py-28 text-white">
-      <div className="mx-auto max-w-6xl">
+    <section id="catalog" className="relative bg-base px-8 py-28">
+      <VehicleBackground iconOpacity={0.15} laneOpacity={0.15} laneSpeed={34} floatAmplitude={13} />
+      <div className="relative z-[1] mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1794,7 +1792,7 @@ export function FeatureBentoGrid() {
             Built for the way{" "}
             <span className="text-brand">enterprises</span> buy data.
           </h2>
-          <p className="mt-4 text-white/50">
+          <p className="mt-4 text-fg-muted">
             Every feature engineered for security, speed, and a frictionless B2B
             checkout.
           </p>
@@ -1823,7 +1821,7 @@ export function FeatureBentoGrid() {
               <h3 className="mt-0.5 text-xl font-extrabold tracking-tight">
                 Discover &amp; Filter
               </h3>
-              <p className="text-[11px] text-white/38">
+              <p className="text-[11px] text-fg-subtle">
                 Fuzzy full-text search · 10 categories · OEM logos · live ticker
                 · HTMX filters
               </p>
@@ -1855,7 +1853,7 @@ export function FeatureBentoGrid() {
               <h3 className="mt-0.5 text-base font-extrabold tracking-tight">
                 OEM Deep-Dive
               </h3>
-              <p className="text-[10px] text-white/38">
+              <p className="text-[10px] text-fg-subtle">
                 Orbital hub · Specs card · JSON Schema · Attributes
               </p>
             </div>
@@ -1886,7 +1884,7 @@ export function FeatureBentoGrid() {
               <h3 className="mt-0.5 text-base font-extrabold tracking-tight">
                 Shopping Cart
               </h3>
-              <p className="text-[10px] text-white/38">
+              <p className="text-[10px] text-fg-subtle">
                 localStorage persistence · UUID items · order history
               </p>
             </div>
