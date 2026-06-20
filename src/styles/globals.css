@@ -11,3 +11,18 @@
     @apply bg-ink text-white antialiased;
   }
 }
+
+@keyframes orbital-spin         { to   { transform: rotate(360deg);  } }
+@keyframes orbital-spin-reverse { to   { transform: rotate(-360deg); } }
+@keyframes map-float {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-5px); }
+}
+@keyframes map-ping {
+  from { transform: scale(1);   opacity: 0.55; }
+  to   { transform: scale(1.9); opacity: 0;    }
+}
+@keyframes cursor-blink {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

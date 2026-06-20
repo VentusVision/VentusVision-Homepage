@@ -59,7 +59,7 @@ const trailD = (() => {
 
 export function MapPreview() {
   const ref    = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px 0px" });
+  const inView = useInView(ref, { once: false, margin: "-60px 0px" });
 
   // Auto-animation state (driven by intervals, no user input)
   const [catIdx,     setCatIdx]     = useState(0);
@@ -183,9 +183,13 @@ export function MapPreview() {
               animate={inView ? { opacity: pinOpacity(pin), scale: 1, y: 0 } : { opacity: 0, scale: 0.2, y: 20 }}
               transition={{ delay: pin.delay, duration: 0.42, ease: EASE_PREMIUM }}
             >
-              <motion.div
-                animate={inView ? { y: [0, -5, 0] } : { y: 0 }}
-                transition={{ delay: pin.delay + 0.55, duration: pin.floatDuration ?? 2.8, repeat: Infinity, ease: "easeInOut" }}
+              {/* float: CSS animation — replaces 7 Framer Motion JS loops */}
+              <div
+                style={{
+                  animation: inView
+                    ? `map-float ${pin.floatDuration ?? 2.8}s ease-in-out ${pin.delay + 0.55}s infinite`
+                    : "none",
+                }}
               >
                 <div
                   className="relative flex h-9 w-9 items-center justify-center rounded-full border-2"
@@ -200,14 +204,21 @@ export function MapPreview() {
                   }}
                 >
                   <Icon className="h-4 w-4 text-white drop-shadow" />
-                  <motion.span className="pointer-events-none absolute inset-0 rounded-full"
-                    style={{ border: `2px solid ${pin.color}` }}
-                    animate={{ scale: [1, 1.9], opacity: [0.55, 0] }}
-                    transition={{ duration: 2.2, repeat: Infinity, delay: pin.delay + 0.9, ease: "easeOut" }} />
+                  {/* ping ring: CSS animation — replaces 7 more Framer Motion loops */}
+                  <span
+                    className="pointer-events-none absolute inset-0 rounded-full"
+                    style={{
+                      border: `2px solid ${pin.color}`,
+                      transformOrigin: "center",
+                      animation: inView
+                        ? `map-ping 2.2s ease-out ${pin.delay + 0.9}s infinite`
+                        : "none",
+                    }}
+                  />
                 </div>
                 <div className="mx-auto h-2.5 w-[2px] rounded-b-full"
                   style={{ backgroundColor: pin.color, opacity: 0.75 }} />
-              </motion.div>
+              </div>
             </motion.div>
           );
         })}
@@ -234,10 +245,9 @@ export function MapPreview() {
             <Search className="h-3 w-3 shrink-0 text-white/25" />
             <span className="flex-1 font-mono text-[9px] text-white/60">
               {searchText}
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.55, repeat: Infinity, ease: "linear" }}
+              <span
                 className="inline-block h-[10px] w-[1.5px] translate-y-[1px] bg-cyan-400/70"
+                style={{ animation: "cursor-blink 0.55s linear infinite" }}
               />
             </span>
           </div>
@@ -346,10 +356,7 @@ export function MapPreview() {
               />
             </div>
             <button className="text-white/30"><ZoomIn className="h-3.5 w-3.5" /></button>
-            <motion.span
-              animate={{ children: undefined }}
-              className="w-8 text-right font-mono text-[9px] text-white/35"
-            >
+            <span className="w-8 text-right font-mono text-[9px] text-white/35">
               <motion.span
                 key="zoom-pct"
                 animate={{ opacity: [1, 0.4, 1] }}
@@ -357,7 +364,7 @@ export function MapPreview() {
               >
                 75%
               </motion.span>
-            </motion.span>
+            </span>
           </div>
         </div>
       </div>

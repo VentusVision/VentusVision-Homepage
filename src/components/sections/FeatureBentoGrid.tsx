@@ -1,5 +1,5 @@
-import { motion, AnimatePresence, useInView, useAnimationFrame, useMotionValue } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Search, ShoppingCart, Battery, BatteryCharging, Zap, Activity, Tag,
@@ -293,7 +293,7 @@ function ProductCard({ title, status, types, oems, description, Icon, color, del
 
 export function CatalogPreview() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: false, margin: "-60px" });
   const [searchIdx, setSearchIdx] = useState(0);
   const [catIdx,    setCatIdx]    = useState(0);
 
@@ -402,47 +402,67 @@ export function CatalogPreview() {
 // Card 2 — Item Detail / OEM Orbital
 // ─────────────────────────────────────────────
 
+const ORBITAL_SPIN: CSSProperties = {
+  transformBox: "fill-box",
+  transformOrigin: "center",
+  animation: "orbital-spin 120s linear infinite",
+};
+const ORBITAL_COUNTER: CSSProperties = {
+  transformBox: "fill-box",
+  transformOrigin: "center",
+  animation: "orbital-spin-reverse 120s linear infinite",
+};
+
 function OEMOrbital({ active }: { active: boolean }) {
-  const angle = useMotionValue(0);
-  const [deg, setDeg] = useState(0);
-
-  useAnimationFrame((t) => {
-    const v = (t / 1000) * 3;
-    angle.set(v);
-    setDeg(v);
-  });
-
   return (
     <svg viewBox="-120 -120 240 240" className="h-full w-full">
-      {ORBITAL_NODES.map((node, i) => {
-        const rad = (node.angle + deg) * Math.PI / 180;
-        const x = Math.cos(rad) * ORBITAL_R;
-        const y = Math.sin(rad) * ORBITAL_R;
-        return (
-          <motion.path
-            key={`line-${i}`}
-            d={`M 0 0 L ${x} ${y}`}
-            stroke="rgba(34,211,238,0.14)"
-            strokeWidth={1}
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={active ? { pathLength: 1 } : {}}
-            transition={{ delay: 0.2 + i * 0.1, duration: 0.55 }}
-          />
-        );
-      })}
-
-      {ORBITAL_NODES.map((node, i) => {
-        const rad = (node.angle + deg) * Math.PI / 180;
-        const x = Math.cos(rad) * ORBITAL_R;
-        const y = Math.sin(rad) * ORBITAL_R;
-        return (
-          <g key={`n-${i}`} transform={`translate(${x},${y})`}>
-            <motion.circle r={19} fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.11)" strokeWidth={1} initial={{ scale: 0 }} animate={active ? { scale: 1 } : {}} transition={{ delay: 0.3 + i * 0.1, duration: 0.35, ease: EASE_PREMIUM }} />
-            <motion.text textAnchor="middle" dominantBaseline="middle" fontSize={6.5} fontWeight={600} fill="rgba(255,255,255,0.55)" fontFamily="ui-monospace, monospace" initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ delay: 0.55 + i * 0.1 }}>{node.label}</motion.text>
-          </g>
-        );
-      })}
+      {/* CSS-animated orbital group — zero JS, zero React re-renders */}
+      <g style={ORBITAL_SPIN}>
+        {ORBITAL_NODES.map((node, i) => {
+          const rad = node.angle * Math.PI / 180;
+          const x = Math.cos(rad) * ORBITAL_R;
+          const y = Math.sin(rad) * ORBITAL_R;
+          return (
+            <g key={node.label}>
+              <motion.path
+                d={`M 0 0 L ${x} ${y}`}
+                stroke="rgba(34,211,238,0.14)"
+                strokeWidth={1}
+                fill="none"
+                initial={{ pathLength: 0 }}
+                animate={active ? { pathLength: 1 } : {}}
+                transition={{ delay: 0.2 + i * 0.1, duration: 0.55 }}
+              />
+              <g transform={`translate(${x},${y})`}>
+                <motion.circle
+                  r={19}
+                  fill="rgba(255,255,255,0.03)"
+                  stroke="rgba(255,255,255,0.11)"
+                  strokeWidth={1}
+                  initial={{ scale: 0 }}
+                  animate={active ? { scale: 1 } : {}}
+                  transition={{ delay: 0.3 + i * 0.1, duration: 0.35, ease: EASE_PREMIUM }}
+                />
+                <g style={ORBITAL_COUNTER}>
+                  <motion.text
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={6.5}
+                    fontWeight={600}
+                    fill="rgba(255,255,255,0.55)"
+                    fontFamily="ui-monospace, monospace"
+                    initial={{ opacity: 0 }}
+                    animate={active ? { opacity: 1 } : {}}
+                    transition={{ delay: 0.55 + i * 0.1 }}
+                  >
+                    {node.label}
+                  </motion.text>
+                </g>
+              </g>
+            </g>
+          );
+        })}
+      </g>
 
       <motion.circle r={36} fill="none" stroke="rgba(34,211,238,0.1)" strokeWidth={16} animate={{ r: [36, 54, 36], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
       <motion.circle cx={0} cy={0} fill="rgba(34,211,238,0.07)" stroke="rgba(34,211,238,0.45)" strokeWidth={1.5} animate={{ r: [36, 38, 36] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
@@ -456,7 +476,7 @@ function OEMOrbital({ active }: { active: boolean }) {
 
 function DetailPreview() {
   const ref    = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const inView = useInView(ref, { once: false, margin: "-40px" });
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
@@ -510,7 +530,7 @@ function DetailPreview() {
 
 function CartPreview() {
   const ref    = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const inView = useInView(ref, { once: false, margin: "-40px" });
   const [items,   setItems]   = useState(CART_ITEMS);
   const [tab,     setTab]     = useState<"requests" | "orders">("requests");
   const [ordered, setOrdered] = useState(false);

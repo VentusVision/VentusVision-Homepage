@@ -63,7 +63,7 @@ const Y_TICKS  = [0, 20, 40, 60, 80, 100];
 
 export function DataExplorerPreview() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px 0px" });
+  const inView = useInView(ref, { once: false, margin: "-60px 0px" });
 
   const [dataIdx,    setDataIdx]    = useState(0);
   const [tipIdx,     setTipIdx]     = useState(0);
@@ -183,6 +183,7 @@ export function DataExplorerPreview() {
                       backgroundColor: color,
                       opacity: isTip ? 1 : 0.75,
                       boxShadow: isTip ? `0 0 18px ${color}80` : "none",
+                      willChange: "height",
                     }}
                     initial={{ height: 0 }}
                     animate={{ height: inView ? `${heightPct}%` : 0 }}
