@@ -1,12 +1,8 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useEffect, useRef, useState, useMemo, useCallback, type CSSProperties } from "react";
 import {
-  Search, ShoppingCart, Battery, Tag, Copy, X, ArrowUpDown, Check, Clock,
-  Zap, Activity, Thermometer, Gauge, Droplets, Wrench, Shield, AlertTriangle,
-  MapPin, Navigation, Car, Wifi, Radio, Smartphone, Plug, CreditCard, Home,
-  Settings, Key, BarChart2, Wind, Calendar, Cpu, Eye, Phone, Star, Moon,
-  Globe, Lock, User, Server, Volume2, BatteryCharging, ChevronDown, Flame,
-  SlidersHorizontal, SearchX,
+  Search, ShoppingCart, Battery, Copy, X, ArrowUpDown, Check, Clock,
+  SlidersHorizontal
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM } from "../../lib/motion";
@@ -217,99 +213,6 @@ function Highlight({ text, query, on }: { text: string; query: string; on: boole
   );
 }
 
-// ─────────────────────────────────────────────
-// Sort Dropdown
-// ─────────────────────────────────────────────
-
-function SortDropdown({ value, onChange }: { value: SortKey; onChange: (v: SortKey) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-  const current = SORT_OPTIONS.find(o => o.value === value)!;
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 rounded-full border border-border bg-base px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:border-brand/40 hover:text-brand"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-      >
-        <ArrowUpDown className="h-3.5 w-3.5" />
-        {current.label}
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            role="listbox"
-            className="absolute right-0 top-full z-50 mt-1.5 min-w-[200px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_8px_32px_rgba(37,99,235,0.12),0_2px_8px_rgba(15,23,42,0.08)]"
-          >
-            <div className="px-3 pb-1.5 pt-2.5">
-              <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-fg-subtle">Sortieren nach</p>
-            </div>
-            {SORT_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                role="option"
-                aria-selected={opt.value === value}
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className={cn(
-                  "flex w-full items-center gap-2.5 px-3 py-2 text-[13px] transition-colors",
-                  opt.value === value ? "bg-brand-subtle font-semibold text-brand" : "text-fg-muted hover:bg-base hover:text-fg"
-                )}
-              >
-                {opt.value === "popularity" && <Flame className="h-3.5 w-3.5" />}
-                {opt.value === "az"         && <ArrowUpDown className="h-3.5 w-3.5" />}
-                {opt.value === "za"         && <ArrowUpDown className="h-3.5 w-3.5 scale-y-[-1]" />}
-                {opt.value === "status"     && <Clock className="h-3.5 w-3.5" />}
-                {opt.label}
-                {opt.value === value && <Check className="ml-auto h-3.5 w-3.5" />}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Micro-components
-// ─────────────────────────────────────────────
-
-function TypedSearch({ term }: { term: string }) {
-  const [shown, setShown] = useState("");
-  useEffect(() => {
-    setShown("");
-    let i = 0;
-    const iv = setInterval(() => {
-      i++;
-      setShown(term.slice(0, i));
-      if (i >= term.length) clearInterval(iv);
-    }, 68);
-    return () => clearInterval(iv);
-  }, [term]);
-  return (
-    <span>
-      <span className="text-fg-muted">{shown}</span>
-      <motion.span
-        animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse" }}
-      >
-        |
-      </motion.span>
-    </span>
-  );
-}
-
 function LiveTicker() {
   const dup = [...TICKER_RAW, ...TICKER_RAW];
   return (
@@ -418,8 +321,8 @@ export function CatalogPreview({ preview = false }: { preview?: boolean }) {
   const inView = useInView(ref, { once: false, margin: "-60px" });
 
   // ── Preview (monitor) mode: cycling animation only ──
-  const [searchIdx, setSearchIdx] = useState(0);
-  const [catIdx,    setCatIdx]    = useState(0);
+  const [, setSearchIdx] = useState(0);
+  const [,    setCatIdx]    = useState(0);
   useEffect(() => {
     if (!inView) return;
     const s = setInterval(() => setSearchIdx(i => (i + 1) % SEARCH_TERMS.length), 3600);
