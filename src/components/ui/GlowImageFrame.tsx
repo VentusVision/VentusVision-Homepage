@@ -1,7 +1,7 @@
 import { useState, type MouseEvent, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { cn } from "../../lib/utils";
-import { floatLoop, glowHover, springSnappy } from "../../lib/motion";
+import { floatLoop, springSnappy } from "../../lib/motion";
 
 interface GlowImageFrameProps {
   src?: string;
@@ -41,16 +41,24 @@ export function GlowImageFrame({ src, alt, label, float = false, flat = false, c
       style={flat ? undefined : { rotateX, rotateY, transformPerspective: 800 }}
       animate={float ? floatLoop.animate : undefined}
       transition={float ? floatLoop.transition : undefined}
-      whileHover={flat ? glowHover : { scale: 1.015, boxShadow: "0 0 120px rgba(34,211,238,0.4)" }}
+      whileHover={
+        flat
+          ? { y: -3, boxShadow: "0 16px 48px rgba(15,23,42,0.12), 0 0 0 1px rgba(37,99,235,0.12)" }
+          : { scale: 1.015, boxShadow: "0 0 120px rgba(37,99,235,0.25)" }
+      }
+      style={{
+        boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.12), 0 32px 80px rgba(37,99,235,0.08), 0 48px 100px rgba(15,23,42,0.08)",
+      }}
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-glow-lg backdrop-blur-xl",
+        "relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface",
         className,
       )}
     >
-      <div className="flex shrink-0 items-center gap-1.5 border-b border-white/10 bg-white/[0.02] px-4 py-3">
-        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+      {/* macOS-style title bar */}
+      <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-3">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
       </div>
 
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
@@ -63,7 +71,7 @@ export function GlowImageFrame({ src, alt, label, float = false, flat = false, c
           />
         )}
         {!showImage && !children && (
-          <span className="text-sm font-medium uppercase tracking-[0.3em] text-white/30">{label}</span>
+          <span className="text-sm font-medium uppercase tracking-[0.3em] text-fg-subtle">{label}</span>
         )}
         {children}
       </div>

@@ -83,7 +83,7 @@ export function DataExplorerPreview() {
   const maxPct  = Math.max(...dataset.bars.map(b => b.pct));
 
   return (
-    <div ref={ref} className="absolute inset-0 flex overflow-hidden text-white">
+    <div ref={ref} className="absolute inset-0 flex overflow-hidden bg-surface text-fg">
 
       {/* ── Chart area ── */}
       <div className="flex min-w-0 flex-1 flex-col px-5 pb-4 pt-3">
@@ -91,21 +91,21 @@ export function DataExplorerPreview() {
         {/* Status bar */}
         <div className="mb-3 flex shrink-0 items-center gap-2">
           <span className="relative flex h-2 w-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          <span className="truncate font-mono text-[9px] text-white/35">
+          <span className="truncate font-mono text-[9px] text-fg-subtle">
             <motion.span key={`cnt-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {dataset.count}
             </motion.span>
             {" category-relevant items · OEM distribution for "}
-            <motion.span key={`cat-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white/65">
+            <motion.span key={`cat-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-fg-muted">
               {dataset.category}
             </motion.span>
           </span>
         </div>
 
-        {/* Plot area — flex-1 so it fills remaining height */}
+        {/* Plot area */}
         <div className="relative min-h-0 flex-1">
 
           {/* Y-axis labels + horizontal grid lines */}
@@ -115,17 +115,14 @@ export function DataExplorerPreview() {
               className="pointer-events-none absolute left-0 right-0 flex items-center"
               style={{ bottom: `calc(${tick}% + 20px)` }}
             >
-              <span className="mr-2 w-7 shrink-0 text-right font-mono text-[8px] leading-none text-white/22">
+              <span className="mr-2 w-7 shrink-0 text-right font-mono text-[8px] leading-none text-fg-subtle">
                 {tick}%
               </span>
-              <div className="flex-1 border-t border-white/[0.07]" />
+              <div className="flex-1 border-t border-border" />
             </div>
           ))}
 
-          {/* Bar columns
-              ── The flex container spans from top:0 to bottom:20px (room for x-labels).
-              ── items-stretch (default) makes each column fill the full height,
-                 giving percentage-height children a definite reference. ── */}
+          {/* Bar columns */}
           <div
             className="absolute flex gap-4"
             style={{ left: 36, right: 0, top: 0, bottom: 20 }}
@@ -137,7 +134,6 @@ export function DataExplorerPreview() {
               const color     = BAR_COLORS[i];
 
               return (
-                /* relative + h-full so child % heights resolve against column height */
                 <div key={i} className="relative flex-1">
 
                   {/* Tooltip */}
@@ -149,12 +145,12 @@ export function DataExplorerPreview() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.88 }}
                         transition={{ duration: 0.18 }}
-                        className="absolute z-10 -translate-x-1/2 rounded-md border border-white/10 bg-white/[0.1] px-2.5 py-1.5 backdrop-blur-md"
+                        className="absolute z-10 -translate-x-1/2 rounded-md border border-border bg-surface px-2.5 py-1.5 shadow-card-md"
                         style={{ bottom: `calc(${heightPct}% + 12px)`, left: "50%" }}
                       >
-                        <p className="whitespace-nowrap font-mono text-[9px] font-semibold text-white">{count} items</p>
-                        <p className="font-mono text-[9px] text-white/50">{bar.pct}%</p>
-                        <div className="absolute -bottom-[5px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rotate-45 border-b border-r border-white/10 bg-white/[0.1]" />
+                        <p className="whitespace-nowrap font-mono text-[9px] font-semibold text-fg">{count} items</p>
+                        <p className="font-mono text-[9px] text-fg-muted">{bar.pct}%</p>
+                        <div className="absolute -bottom-[5px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rotate-45 border-b border-r border-border bg-surface" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -166,14 +162,14 @@ export function DataExplorerPreview() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: inView ? 1 : 0 }}
                       transition={{ duration: 0.25, delay: 0.55 + i * 0.07 }}
-                      className="absolute -translate-x-1/2 font-mono text-[8px] tabular-nums text-white/35"
+                      className="absolute -translate-x-1/2 font-mono text-[8px] tabular-nums text-fg-subtle"
                       style={{ bottom: `calc(${heightPct}% + 4px)`, left: "50%" }}
                     >
                       {bar.pct}%
                     </motion.span>
                   )}
 
-                  {/* Bar — anchored at bottom, grows upward, colored per index */}
+                  {/* Bar */}
                   <motion.div
                     key={`bar-${dataIdx}-${i}`}
                     className="absolute bottom-0 rounded-t-[3px]"
@@ -181,8 +177,8 @@ export function DataExplorerPreview() {
                       left: "18%",
                       right: "18%",
                       backgroundColor: color,
-                      opacity: isTip ? 1 : 0.75,
-                      boxShadow: isTip ? `0 0 18px ${color}80` : "none",
+                      opacity: isTip ? 1 : 0.8,
+                      boxShadow: isTip ? `0 0 18px ${color}60` : "none",
                       willChange: "height",
                     }}
                     initial={{ height: 0 }}
@@ -205,7 +201,7 @@ export function DataExplorerPreview() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: inView ? 1 : 0 }}
                 transition={{ duration: 0.2, delay: 0.1 + i * 0.07 }}
-                className="flex-1 truncate text-center font-mono text-[8px] text-white/32"
+                className="flex-1 truncate text-center font-mono text-[8px] text-fg-muted"
               >
                 {bar.label}
               </motion.span>
@@ -214,29 +210,29 @@ export function DataExplorerPreview() {
         </div>
       </div>
 
-      {/* ── Right sidebar — colored category pills, same style, bigger ── */}
-      <div className="flex w-[190px] shrink-0 flex-col overflow-hidden border-l border-white/[0.06] bg-white/[0.018]">
+      {/* ── Right sidebar ── */}
+      <div className="flex w-[260px] shrink-0 flex-col overflow-hidden border-l border-border bg-base">
 
         {/* Header */}
-        <div className="shrink-0 border-b border-white/[0.06] px-3.5 py-2.5">
-          <p className="text-[13px] font-bold tracking-tight text-cyan-300">CARUSO Explorer</p>
+        <div className="shrink-0 border-b border-border px-5 py-3.5">
+          <p className="text-[16px] font-bold tracking-tight text-brand">CARUSO Explorer</p>
         </div>
 
         {/* Filters */}
-        <div className="shrink-0 space-y-3 border-b border-white/[0.06] px-3.5 py-3">
+        <div className="shrink-0 space-y-4 border-b border-border px-5 py-4">
           {/* Channel */}
           <div>
-            <p className="mb-1.5 font-mono text-[8px] uppercase tracking-widest text-white/30">Channel</p>
-            <div className="flex gap-1.5">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Channel</p>
+            <div className="flex gap-2">
               {CHANNELS.map((ch, i) => (
                 <motion.span
                   key={ch}
                   animate={{
-                    backgroundColor: channelIdx === i ? "rgba(255,255,255,0.14)" : "transparent",
-                    color:           channelIdx === i ? "rgba(255,255,255,0.9)"  : "rgba(255,255,255,0.32)",
+                    backgroundColor: channelIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
+                    color:           channelIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
                   }}
                   transition={{ duration: 0.28 }}
-                  className="cursor-default rounded-full border border-white/[0.09] px-2.5 py-1 font-mono text-[8px]"
+                  className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
                 >
                   {ch}
                 </motion.span>
@@ -246,17 +242,17 @@ export function DataExplorerPreview() {
 
           {/* Status */}
           <div>
-            <p className="mb-1.5 font-mono text-[8px] uppercase tracking-widest text-white/30">Status</p>
-            <div className="flex gap-1.5">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Status</p>
+            <div className="flex gap-2">
               {STATUSES.map((st, i) => (
                 <motion.span
                   key={st}
                   animate={{
-                    backgroundColor: statusIdx === i ? "rgba(255,255,255,0.14)" : "transparent",
-                    color:           statusIdx === i ? "rgba(255,255,255,0.9)"  : "rgba(255,255,255,0.32)",
+                    backgroundColor: statusIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
+                    color:           statusIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
                   }}
                   transition={{ duration: 0.28 }}
-                  className="cursor-default rounded-full border border-white/[0.09] px-2 py-1 font-mono text-[8px]"
+                  className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
                 >
                   {st}
                 </motion.span>
@@ -265,21 +261,21 @@ export function DataExplorerPreview() {
           </div>
         </div>
 
-        {/* Categories — full-width colored pills, bigger */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3.5 py-2.5">
-          <p className="mb-2 shrink-0 font-mono text-[8px] uppercase tracking-widest text-white/30">Categories</p>
-          <div className="flex flex-col gap-[5px] overflow-hidden">
+        {/* Categories */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4">
+          <p className="mb-3 shrink-0 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Categories</p>
+          <div className="flex flex-col gap-2 overflow-hidden">
             {CATEGORIES.map((cat, i) => {
               const isActive = i === dataset.catIdx;
               return (
                 <motion.span
                   key={cat.label}
-                  animate={{ opacity: isActive ? 1 : 0.38 }}
+                  animate={{ opacity: isActive ? 1 : 0.45 }}
                   transition={{ duration: 0.35 }}
                   className={cn(
-                    "inline-flex shrink-0 items-center truncate rounded-full px-3 py-[5px] text-[9px] font-semibold text-white",
+                    "inline-flex shrink-0 items-center truncate rounded-full px-4 py-2 text-[11px] font-semibold text-white",
                     cat.cls,
-                    isActive && "ring-1 ring-white/25 ring-offset-[1.5px] ring-offset-[#02030a]",
+                    isActive && "ring-2 ring-white/30 ring-offset-[2px] ring-offset-white",
                   )}
                 >
                   {cat.label}
@@ -290,17 +286,17 @@ export function DataExplorerPreview() {
         </div>
 
         {/* Wizard hint */}
-        <div className="shrink-0 border-t border-white/[0.06] px-3.5 py-2">
-          <div className="flex items-center gap-2">
+        <div className="shrink-0 border-t border-border px-5 py-3">
+          <div className="flex items-center gap-2.5">
             {[0, 1, 2].map(s => (
               <motion.span
                 key={s}
-                className="h-[5px] w-[5px] rounded-full bg-cyan-400"
+                className="h-[6px] w-[6px] rounded-full bg-brand"
                 animate={{ opacity: [0.25, 1, 0.25] }}
                 transition={{ duration: 1.8, repeat: Infinity, delay: s * 0.45 }}
               />
             ))}
-            <span className="font-mono text-[8px] text-white/30">Highlights Wizard</span>
+            <span className="font-mono text-[10px] text-fg-subtle">Highlights Wizard</span>
           </div>
         </div>
       </div>

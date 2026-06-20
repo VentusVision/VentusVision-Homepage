@@ -7,9 +7,9 @@ import { MapPreview } from "./MapPreview";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 const TABS = [
-  { id: "catalog",  label: "Data Catalog",  color: "#60a5fa", Icon: Search    },
+  { id: "catalog",  label: "Data Catalog",  color: "#2563EB", Icon: Search    },
   { id: "explorer", label: "Data Explorer", color: "#a855f7", Icon: BarChart3 },
-  { id: "map",      label: "Map Explorer",  color: "#22d3ee", Icon: Globe     },
+  { id: "map",      label: "Map Explorer",  color: "#06B6D4", Icon: Globe     },
 ] as const;
 
 const TAB_DURATION = 6000;
@@ -46,10 +46,10 @@ export function HeroTripleDash() {
   const activeTab = TABS[tabIdx];
 
   return (
-    <div ref={ref} className="flex h-full w-full flex-col overflow-hidden text-white">
+    <div ref={ref} className="flex h-full w-full flex-col overflow-hidden bg-base text-fg">
 
       {/* ── Tab bar ── */}
-      <div className="shrink-0 border-b border-white/[0.06]">
+      <div className="shrink-0 border-b border-border bg-surface">
         <div className="flex">
           {TABS.map((tab, i) => {
             const isActive = i === tabIdx;
@@ -61,11 +61,11 @@ export function HeroTripleDash() {
               >
                 <tab.Icon
                   className="h-4 w-4 shrink-0 transition-colors"
-                  style={{ color: isActive ? tab.color : "rgba(255,255,255,0.25)" }}
+                  style={{ color: isActive ? tab.color : "rgba(15,23,42,0.28)" }}
                 />
                 <span
                   className="text-sm font-semibold tracking-wide transition-colors"
-                  style={{ color: isActive ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)" }}
+                  style={{ color: isActive ? "rgba(15,23,42,0.9)" : "rgba(15,23,42,0.35)" }}
                 >
                   {tab.label}
                 </span>
@@ -83,11 +83,11 @@ export function HeroTripleDash() {
         </div>
 
         {/* Auto-advance progress bar */}
-        <div className="h-[3px] overflow-hidden bg-white/[0.04]">
+        <div className="h-[3px] overflow-hidden bg-border">
           <motion.div
             key={tabIdx}
             className="h-full rounded-full"
-            style={{ backgroundColor: activeTab.color + "70" }}
+            style={{ backgroundColor: activeTab.color + "80" }}
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: TAB_DURATION / 1000, ease: "linear" }}
@@ -106,7 +106,6 @@ export function HeroTripleDash() {
             transition={{ duration: 0.26, ease: EASE_PREMIUM }}
             className="h-full"
           >
-            {/* Scale up to fill the wider monitor — less shrinking than before */}
             {tabIdx === 0 && <ScaledPreview scale={0.88}><CatalogPreview /></ScaledPreview>}
             {tabIdx === 1 && <ScaledPreview scale={0.92}><DataExplorerPreview /></ScaledPreview>}
             {tabIdx === 2 && <ScaledPreview scale={0.88}><MapPreview /></ScaledPreview>}
@@ -115,9 +114,9 @@ export function HeroTripleDash() {
       </div>
 
       {/* ── Footer ── */}
-      <div className="shrink-0 border-t border-white/[0.05] px-6 py-2.5">
+      <div className="shrink-0 border-t border-border bg-surface px-6 py-2.5">
         <div className="flex items-center">
-          <span className="text-xs text-white/20">
+          <span className="text-xs text-fg-subtle">
             3 products · 1 platform · 500+ data items
           </span>
           <div className="ml-auto flex items-center gap-2">

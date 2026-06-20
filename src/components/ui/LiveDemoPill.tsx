@@ -13,22 +13,22 @@ export function LiveDemoPill() {
       transition={{ delay: 2.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="pointer-events-none fixed bottom-7 left-1/2 z-50 -translate-x-1/2"
     >
-      {/* Ambient glow behind the pill */}
+      {/* Ambient shadow underneath */}
       <div
         aria-hidden
         className="absolute inset-x-4 -bottom-3 h-6 rounded-full blur-xl"
-        style={{ background: "rgba(34,211,238,0.18)" }}
+        style={{ background: "rgba(37,99,235,0.14)" }}
       />
 
       <motion.a
         href={DEMO_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="pointer-events-auto relative flex items-center gap-3 rounded-full border border-white/[0.12] bg-[#05060b]/85 px-5 py-2.5 backdrop-blur-2xl"
+        className="pointer-events-auto relative flex items-center gap-3 rounded-full border border-border bg-surface/90 px-5 py-2.5 shadow-card-md backdrop-blur-2xl"
         whileHover={{
           scale: 1.03,
-          borderColor: "rgba(34,211,238,0.3)",
-          boxShadow: "0 0 40px rgba(34,211,238,0.2)",
+          borderColor: "rgba(37,99,235,0.25)",
+          boxShadow: "0 8px 32px rgba(37,99,235,0.16)",
         }}
         whileTap={{ scale: 0.97 }}
         transition={springSnappy}
@@ -36,24 +36,24 @@ export function LiveDemoPill() {
         {/* Live indicator */}
         <span className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-70" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-green-400">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-green-600">
             Live
           </span>
         </span>
 
         {/* Divider */}
-        <span className="h-3.5 w-px shrink-0 bg-white/15" />
+        <span className="h-3.5 w-px shrink-0 bg-border" />
 
         {/* Domain */}
-        <span className="font-mono text-[11px] text-white/45 transition-colors duration-200 group-hover:text-white/70">
+        <span className="font-mono text-[11px] text-fg-muted">
           {DOMAIN}
         </span>
 
         {/* Arrow */}
-        <ExternalLink className="h-3 w-3 shrink-0 text-white/30" />
+        <ExternalLink className="h-3 w-3 shrink-0 text-fg-subtle" />
       </motion.a>
     </motion.div>
   );

@@ -11,7 +11,8 @@ import {
   Download, Server, Volume2,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { EASE_PREMIUM, glowHover } from "../../lib/motion";
+import { EASE_PREMIUM } from "../../lib/motion";
+import { VehicleBackground } from "../ui/VehicleBackground";
 
 // ─────────────────────────────────────────────
 // Data
@@ -47,7 +48,6 @@ interface Category {
   products: Product[];
 }
 
-// 8 rotating colors per card slot
 const C = ["#60a5fa","#4ade80","#fb923c","#a855f7","#f43f5e","#facc15","#22d3ee","#ec4899"] as const;
 
 const CATALOG_DATA: Category[] = [
@@ -61,7 +61,7 @@ const CATALOG_DATA: Category[] = [
       { title: "Est. Charging Completion Time",   status: "AVAILABLE", types: ["B2B","B2C"], oems: ["Tesla","BMW","Audi","Porsche"],      Icon: Clock,          color: C[4], description: "Predicted time until battery is fully charged based on current SoC, charging rate, and battery temperature." },
       { title: "Charging Cost per Session",       status: "DRAFT",     types: ["B2C"],       oems: ["BMW","Mercedes-Benz","Tesla"],       Icon: CreditCard,     color: C[5], description: "Cost data per charging session including tariff type, currency, and total amount billed." },
       { title: "Wallbox Communication Data",      status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","VW","Renault"],         Icon: Home,           color: C[6], description: "Data exchanged between the vehicle and home charging station (OCPP protocol), including schedules and load management signals." },
-      { title: "Preconditioning Activation Events", status: "AVAILABLE", types: ["B2C"],     oems: ["BMW","Tesla","Mercedes-Benz"],       Icon: Thermometer,    color: C[7], description: "Records of cabin and battery preconditioning events triggered remotely or by departure timer." },
+      { title: "Preconditioning Activation",      status: "AVAILABLE", types: ["B2C"],       oems: ["BMW","Tesla","Mercedes-Benz"],       Icon: Thermometer,    color: C[7], description: "Records of cabin and battery preconditioning events triggered remotely or by departure timer." },
     ],
   },
   {
@@ -106,7 +106,7 @@ const CATALOG_DATA: Category[] = [
   {
     name: "Maintenance & Diag.", count: 88,
     products: [
-      { title: "OBD-II Diagnostic Trouble Codes", status: "AVAILABLE", types: ["B2B"],      oems: ["BMW","Audi","Mercedes-Benz","VW","Ford","Toyota","Stellantis","Renault"], Icon: Wrench, color: C[0], description: "Active and pending fault codes (DTCs) from all ECUs with code description and severity level." },
+      { title: "OBD-II Diagnostic Codes",         status: "AVAILABLE", types: ["B2B"],      oems: ["BMW","Audi","Mercedes-Benz","VW","Ford","Toyota","Stellantis","Renault"], Icon: Wrench, color: C[0], description: "Active and pending fault codes (DTCs) from all ECUs with code description and severity level." },
       { title: "Service Interval Status",         status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW","Volvo","Toyota"], Icon: Calendar, color: C[1], description: "Remaining distance and days until next scheduled service (oil, brake fluid, inspection)." },
       { title: "Brake Pad Wear Level",            status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Porsche","VW"],       Icon: Shield,   color: C[2], description: "Current brake pad thickness as a percentage of original depth, per axle." },
       { title: "Tyre Pressure Monitoring",        status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW","Tesla","Ford","Renault"], Icon: Activity, color: C[3], description: "Real-time tyre pressure readings for all four wheels via TPMS sensors, with temperature." },
@@ -119,14 +119,14 @@ const CATALOG_DATA: Category[] = [
   {
     name: "Safety & Incidents", count: 51,
     products: [
-      { title: "Auto Emergency Braking Events",   status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Tesla","Hyundai"], Icon: AlertTriangle, color: C[0], description: "Records of AEB system activations including trigger speed, deceleration force, and GPS coordinates." },
+      { title: "Auto Emergency Braking",          status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Tesla","Hyundai"], Icon: AlertTriangle, color: C[0], description: "Records of AEB system activations including trigger speed, deceleration force, and GPS coordinates." },
       { title: "Airbag Deployment Events",        status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","VW","Toyota","Ford"], Icon: Shield,        color: C[1], description: "Log of airbag and seatbelt pretensioner deployment with timestamp and impact direction." },
-      { title: "Lane Departure Warning Events",   status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","Volvo","Ford"], Icon: AlertTriangle, color: C[2], description: "Instances where the vehicle crossed lane markings without indicator activation." },
+      { title: "Lane Departure Warning",          status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","Volvo","Ford"], Icon: AlertTriangle, color: C[2], description: "Instances where the vehicle crossed lane markings without indicator activation." },
       { title: "Collision Detection Data",        status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Tesla"],       Icon: AlertTriangle, color: C[3], description: "Accelerometer data around collision events with G-force values per axis and direction." },
-      { title: "Driver Attention Alert Events",   status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Toyota"],     Icon: Eye,           color: C[4], description: "Activations of the driver drowsiness and attention monitoring system with severity level." },
-      { title: "Forward Collision Warning Events", status: "AVAILABLE", types: ["B2B"],      oems: ["BMW","Audi","Mercedes-Benz","Tesla","Hyundai","Ford"], Icon: AlertTriangle, color: C[5], description: "Pre-collision alert events with time-to-collision value, relative speed, and GPS position." },
-      { title: "Blind Spot Detection Events",     status: "DRAFT",     types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Ford","Volvo","Stellantis"], Icon: Eye,     color: C[6], description: "Count and timing of blind spot warning activations per trip segment." },
-      { title: "Post-Crash Emergency Call Data",  status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","VW","Renault","Stellantis"], Icon: Phone,  color: C[7], description: "eCall data transmitted after a crash including GPS coordinates, severity, and occupant count." },
+      { title: "Driver Attention Alerts",         status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Toyota"],     Icon: Eye,           color: C[4], description: "Activations of the driver drowsiness and attention monitoring system with severity level." },
+      { title: "Forward Collision Warnings",      status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","Hyundai","Ford"], Icon: AlertTriangle, color: C[5], description: "Pre-collision alert events with time-to-collision value, relative speed, and GPS position." },
+      { title: "Blind Spot Detection",            status: "DRAFT",     types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Ford","Volvo","Stellantis"], Icon: Eye,     color: C[6], description: "Count and timing of blind spot warning activations per trip segment." },
+      { title: "Post-Crash Emergency Call",       status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","VW","Renault","Stellantis"], Icon: Phone,  color: C[7], description: "eCall data transmitted after a crash including GPS coordinates, severity, and occupant count." },
     ],
   },
   {
@@ -184,9 +184,9 @@ const CATALOG_DATA: Category[] = [
 ];
 
 const CART_ITEMS = [
-  { id: 1, title: "Battery Health Index",     price: "1.00 EUR" },
-  { id: 2, title: "Trip Summary Data",        price: "1.00 EUR" },
-  { id: 3, title: "OBD-II Diagnostic Codes",  price: "1.00 EUR" },
+  { id: 1, title: "Battery Health Index",    price: "1.00 EUR" },
+  { id: 2, title: "Trip Summary Data",       price: "1.00 EUR" },
+  { id: 3, title: "OBD-II Diagnostic Codes", price: "1.00 EUR" },
 ];
 
 const ORBITAL_R = 82;
@@ -213,7 +213,7 @@ function TypedSearch({ term }: { term: string }) {
   }, [term]);
   return (
     <span>
-      <span className="text-white/65">{shown}</span>
+      <span className="text-fg-muted">{shown}</span>
       <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse" }}>|</motion.span>
     </span>
   );
@@ -222,15 +222,15 @@ function TypedSearch({ term }: { term: string }) {
 function LiveTicker() {
   const dup = [...TICKER_RAW, ...TICKER_RAW];
   return (
-    <div className="overflow-hidden border-b border-white/[0.05] bg-cyan-500/[0.04]">
+    <div className="overflow-hidden border-b border-border bg-brand-subtle">
       <motion.div
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
         className="flex gap-8 whitespace-nowrap px-4 py-1.5"
       >
         {dup.map((item, i) => (
-          <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[8px] text-cyan-300/45">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
+          <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[9px] text-brand/60">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
             NEW: {item}
           </span>
         ))}
@@ -239,49 +239,54 @@ function LiveTicker() {
   );
 }
 
-function ProductCard({ title, status, types, oems, description, Icon, color, delay }: Product & { delay: number }) {
+// Status / type badge helpers — semantic colors, no raw hex
+function StatusBadge({ status }: { status: "AVAILABLE" | "DRAFT" }) {
+  return status === "AVAILABLE"
+    ? <span className="rounded-full bg-emerald-500/10 px-1.5 py-[2px] text-[7.5px] font-bold text-emerald-600">● AVAILABLE</span>
+    : <span className="rounded-full bg-amber-500/10  px-1.5 py-[2px] text-[7.5px] font-bold text-amber-600">◌ DRAFT</span>;
+}
+
+function TypeBadge({ type }: { type: string }) {
+  return type === "B2B"
+    ? <span className="rounded-full bg-brand-subtle px-1.5 py-[2px] text-[7.5px] font-semibold text-brand">{type}</span>
+    : <span className="rounded-full bg-accent-subtle px-1.5 py-[2px] text-[7.5px] font-semibold text-accent">{type}</span>;
+}
+
+function ProductCard({ title, status, types, oems, description, Icon, delay }: Product & { delay: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.34, ease: EASE_PREMIUM }}
-      className="flex h-full flex-col rounded-xl border border-white/[0.07] bg-white/[0.03] p-2.5"
+      className="flex h-full flex-col rounded-xl border border-border bg-base p-3.5"
     >
-      {/* Title + icon */}
-      <div className="flex items-start justify-between gap-1">
-        <p className="text-[9.5px] font-bold leading-snug text-white">{title}</p>
-        <span className="mt-0.5 shrink-0 rounded-md p-1.5" style={{ backgroundColor: color + "1e" }}>
-          <Icon className="h-2.5 w-2.5" style={{ color }} />
+      {/* Title + icon — all icons brand blue */}
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-bold leading-snug text-fg">{title}</p>
+        <span className="mt-0.5 shrink-0 rounded-md bg-brand-subtle p-2">
+          <Icon className="h-3 w-3 text-brand" />
         </span>
       </div>
 
       {/* Badges */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-[3px]">
-        <span className={cn(
-          "rounded-full px-1.5 py-[2px] text-[6px] font-bold uppercase tracking-wide",
-          status === "AVAILABLE" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/15 text-yellow-400",
-        )}>● {status}</span>
-        {types.map(t => (
-          <span key={t} className={cn(
-            "rounded-full px-1.5 py-[2px] text-[6px] font-semibold",
-            t === "B2B" ? "bg-blue-500/15 text-blue-300" : "bg-orange-500/15 text-orange-300",
-          )}>{t}</span>
-        ))}
+      <div className="mt-2 flex flex-wrap items-center gap-1">
+        <StatusBadge status={status} />
+        {types.map(t => <TypeBadge key={t} type={t} />)}
       </div>
 
       {/* Description */}
-      <p className="mt-3 line-clamp-2 text-[7.5px] leading-[1.55] text-white/35">{description}</p>
+      <p className="mt-2.5 line-clamp-2 text-[9px] leading-[1.6] text-fg-muted">{description}</p>
 
       {/* OEM chips + cart */}
-      <div className="mt-auto flex items-end justify-between gap-1 pt-2">
-        <div className="flex flex-wrap gap-[3px]">
+      <div className="mt-auto flex items-end justify-between gap-1 pt-2.5">
+        <div className="flex flex-wrap gap-1">
           {oems.slice(0, 2).map(oem => (
-            <span key={oem} className="rounded border border-white/[0.08] px-1 py-[1px] font-mono text-[5.5px] uppercase tracking-wide text-white/28">
+            <span key={oem} className="rounded border border-border px-1.5 py-[1px] font-mono text-[6.5px] uppercase tracking-wide text-fg-subtle">
               {oem}
             </span>
           ))}
         </div>
-        <ShoppingCart className="h-2.5 w-2.5 shrink-0 text-white/20" />
+        <ShoppingCart className="h-3 w-3 shrink-0 text-brand/50" />
       </div>
     </motion.div>
   );
@@ -311,32 +316,32 @@ export function CatalogPreview() {
       <LiveTicker />
 
       {/* Search bar */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
-        <Search className="h-3.5 w-3.5 shrink-0 text-white/28" />
-        <span className="min-w-0 flex-1 text-[11px] text-white/28">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-2.5">
+        <Search className="h-4 w-4 shrink-0 text-brand" />
+        <span className="min-w-0 flex-1 text-[12px] text-fg-subtle">
           {inView && <TypedSearch term={SEARCH_TERMS[searchIdx]} />}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-white/35">Filter ▾</span>
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-white/35">CSV</span>
-          <span className="rounded-full bg-cyan-500/75 px-2.5 py-0.5 text-[8px] font-semibold text-black">Highlighting</span>
+          <span className="rounded-full border border-border px-2.5 py-1 text-[9px] text-fg-muted">Filter ▾</span>
+          <span className="rounded-full border border-border px-2.5 py-1 text-[9px] text-fg-muted">CSV</span>
+          <span className="rounded-full bg-brand px-3 py-1 text-[9px] font-semibold text-white">Highlighting</span>
         </div>
       </div>
 
       {/* Category pills */}
-      <div className="flex shrink-0 items-center gap-1.5 overflow-hidden border-b border-white/[0.05] px-4 py-2">
-        <span className="shrink-0 font-mono text-[7px] uppercase tracking-widest text-white/22">CATEGORIES:</span>
+      <div className="flex shrink-0 items-center gap-2 overflow-hidden border-b border-border px-4 py-2">
+        <span className="shrink-0 font-mono text-[8px] uppercase tracking-widest text-fg-subtle">CATEGORIES:</span>
         <div className="flex gap-1.5 overflow-hidden">
           {CATALOG_DATA.map((cat, i) => (
             <motion.span
               key={cat.name}
               animate={{
-                backgroundColor: catIdx === i ? "rgba(34,211,238,0.14)" : "rgba(255,255,255,0.04)",
-                color:           catIdx === i ? "rgba(34,211,238,0.9)"  : "rgba(255,255,255,0.32)",
-                borderColor:     catIdx === i ? "rgba(34,211,238,0.28)" : "rgba(255,255,255,0.07)",
+                backgroundColor: catIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
+                color:           catIdx === i ? "#2563EB"               : "rgba(15,23,42,0.45)",
+                borderColor:     catIdx === i ? "rgba(37,99,235,0.25)"  : "rgba(15,23,42,0.12)",
               }}
               transition={{ duration: 0.32 }}
-              className="shrink-0 cursor-default rounded-full border px-2.5 py-0.5 text-[8px] font-medium"
+              className="shrink-0 cursor-default rounded-full border px-2.5 py-0.5 text-[9px] font-medium"
             >
               {cat.name}
             </motion.span>
@@ -345,8 +350,8 @@ export function CatalogPreview() {
       </div>
 
       {/* Section header */}
-      <div className="flex shrink-0 items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center justify-between px-4 py-2.5">
+        <div className="flex items-center gap-2.5">
           <AnimatePresence mode="wait">
             <motion.span
               key={`title-${catIdx}`}
@@ -354,7 +359,7 @@ export function CatalogPreview() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
               transition={{ duration: 0.2 }}
-              className="text-[13px] font-extrabold text-white"
+              className="text-[15px] font-extrabold text-brand"
             >
               {currentCat.name}
             </motion.span>
@@ -366,14 +371,14 @@ export function CatalogPreview() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
-              className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[7.5px] font-semibold text-cyan-300"
+              className="rounded-full bg-brand-muted px-2.5 py-0.5 text-[9px] font-semibold text-brand"
             >
               {currentCat.count} items
             </motion.span>
           </AnimatePresence>
         </div>
-        <span className="flex items-center gap-1 text-[8px] text-white/30">
-          <ArrowUpDown className="h-3 w-3" /> Popularity
+        <span className="flex items-center gap-1.5 text-[9px] text-fg-subtle">
+          <ArrowUpDown className="h-3.5 w-3.5 text-brand/50" /> Popularity
         </span>
       </div>
 
@@ -386,7 +391,7 @@ export function CatalogPreview() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="grid h-full grid-cols-4 grid-rows-2 gap-2"
+            className="grid h-full grid-cols-4 grid-rows-2 gap-2.5"
           >
             {currentCat.products.map((p, i) => (
               <ProductCard key={p.title} {...p} delay={0.03 + i * 0.05} />
@@ -416,7 +421,6 @@ const ORBITAL_COUNTER: CSSProperties = {
 function OEMOrbital({ active }: { active: boolean }) {
   return (
     <svg viewBox="-120 -120 240 240" className="h-full w-full">
-      {/* CSS-animated orbital group — zero JS, zero React re-renders */}
       <g style={ORBITAL_SPIN}>
         {ORBITAL_NODES.map((node, i) => {
           const rad = node.angle * Math.PI / 180;
@@ -426,7 +430,7 @@ function OEMOrbital({ active }: { active: boolean }) {
             <g key={node.label}>
               <motion.path
                 d={`M 0 0 L ${x} ${y}`}
-                stroke="rgba(34,211,238,0.14)"
+                stroke="rgba(37,99,235,0.18)"
                 strokeWidth={1}
                 fill="none"
                 initial={{ pathLength: 0 }}
@@ -436,8 +440,8 @@ function OEMOrbital({ active }: { active: boolean }) {
               <g transform={`translate(${x},${y})`}>
                 <motion.circle
                   r={19}
-                  fill="rgba(255,255,255,0.03)"
-                  stroke="rgba(255,255,255,0.11)"
+                  fill="rgba(37,99,235,0.05)"
+                  stroke="rgba(37,99,235,0.18)"
                   strokeWidth={1}
                   initial={{ scale: 0 }}
                   animate={active ? { scale: 1 } : {}}
@@ -449,7 +453,7 @@ function OEMOrbital({ active }: { active: boolean }) {
                     dominantBaseline="middle"
                     fontSize={6.5}
                     fontWeight={600}
-                    fill="rgba(255,255,255,0.55)"
+                    fill="rgba(15,23,42,0.65)"
                     fontFamily="ui-monospace, monospace"
                     initial={{ opacity: 0 }}
                     animate={active ? { opacity: 1 } : {}}
@@ -464,11 +468,11 @@ function OEMOrbital({ active }: { active: boolean }) {
         })}
       </g>
 
-      <motion.circle r={36} fill="none" stroke="rgba(34,211,238,0.1)" strokeWidth={16} animate={{ r: [36, 54, 36], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.circle cx={0} cy={0} fill="rgba(34,211,238,0.07)" stroke="rgba(34,211,238,0.45)" strokeWidth={1.5} animate={{ r: [36, 38, 36] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-      <text textAnchor="middle" y={-5} fontSize={10} fontWeight={700} fill="rgba(255,255,255,0.82)" fontFamily="ui-monospace,monospace">VW</text>
-      <text textAnchor="middle" y={8}  fontSize={6.5} fill="rgba(34,211,238,0.75)" fontFamily="ui-monospace,monospace">Group</text>
-      <circle cx={26} cy={-26} r={8} fill="#3b82f6" />
+      <motion.circle r={36} fill="none" stroke="rgba(37,99,235,0.12)" strokeWidth={16} animate={{ r: [36, 54, 36], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.circle cx={0} cy={0} fill="rgba(37,99,235,0.07)" stroke="rgba(37,99,235,0.45)" strokeWidth={1.5} animate={{ r: [36, 38, 36] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
+      <text textAnchor="middle" y={-5} fontSize={10} fontWeight={700} fill="rgba(15,23,42,0.85)" fontFamily="ui-monospace,monospace">VW</text>
+      <text textAnchor="middle" y={8}  fontSize={6.5} fill="rgba(37,99,235,0.80)" fontFamily="ui-monospace,monospace">Group</text>
+      <circle cx={26} cy={-26} r={8} fill="#2563EB" />
       <text x={26} y={-23} textAnchor="middle" dominantBaseline="middle" fontSize={4.5} fontWeight={700} fill="white" fontFamily="sans-serif">B2B</text>
     </svg>
   );
@@ -480,21 +484,22 @@ function DetailPreview() {
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-white/[0.06] px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="rounded-xl bg-orange-400/15 p-2">
-            <Battery className="h-4 w-4 text-orange-400" />
+      <div className="shrink-0 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-3">
+          {/* Icon is brand blue — CARUSO style */}
+          <span className="rounded-xl bg-brand-subtle p-2.5">
+            <Battery className="h-5 w-5 text-brand" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-bold leading-tight text-white">Battery Care Mode</p>
-            <div className="mt-1 flex items-center gap-1">
-              <span className="rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">● AVAILABLE</span>
-              <span className="rounded-full bg-blue-500/15 px-1.5 py-px text-[7px] font-semibold text-blue-300">B2B</span>
+            <p className="text-[13px] font-bold leading-tight text-fg">Battery Care Mode</p>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <StatusBadge status="AVAILABLE" />
+              <TypeBadge type="B2B" />
             </div>
           </div>
           <motion.button
-            whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(34,211,238,0.4)" }}
-            className="shrink-0 rounded-lg bg-cyan-500/80 px-2.5 py-1.5 text-[9px] font-bold text-black"
+            whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+            className="shrink-0 rounded-lg bg-brand px-3 py-2 text-[10px] font-bold text-white"
           >
             ▶ Request
           </motion.button>
@@ -505,19 +510,19 @@ function DetailPreview() {
         <OEMOrbital active={inView} />
       </div>
 
-      <div className="shrink-0 grid grid-cols-4 divide-x divide-white/[0.05] border-t border-white/[0.05]">
+      <div className="shrink-0 grid grid-cols-4 divide-x divide-border border-t border-border">
         {[{ label: "Contract", value: "B2B" }, { label: "OEMs", value: "1" }, { label: "API", value: "v1" }, { label: "Status", value: "AVAILABLE" }].map(({ label, value }) => (
-          <div key={label} className="px-3 py-2 text-center">
-            <p className="font-mono text-[6.5px] uppercase tracking-widest text-white/22">{label}</p>
-            <p className="mt-0.5 truncate text-[8px] font-bold text-white/60">{value}</p>
+          <div key={label} className="px-3 py-2.5 text-center">
+            <p className="font-mono text-[7.5px] uppercase tracking-widest text-fg-subtle">{label}</p>
+            <p className="mt-0.5 truncate text-[10px] font-bold text-fg-muted">{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="shrink-0 border-t border-white/[0.05] px-3 py-2.5">
-        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
-          <code className="font-mono text-[9px] text-cyan-300/65">batterycaremode</code>
-          <Copy className="h-3 w-3 text-white/22" />
+      <div className="shrink-0 border-t border-border px-3 py-2.5">
+        <div className="flex items-center justify-between rounded-lg bg-base px-3 py-2.5">
+          <code className="font-mono text-[10px] text-brand">batterycaremode</code>
+          <Copy className="h-3.5 w-3.5 text-brand/50" />
         </div>
       </div>
     </div>
@@ -547,22 +552,22 @@ function CartPreview() {
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-4 py-3">
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="h-4 w-4 text-cyan-300" />
-          <span className="text-[12px] font-bold text-white">Shopping Bag</span>
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <ShoppingCart className="h-4.5 w-4.5 text-brand" style={{ width: "1.125rem", height: "1.125rem" }} />
+          <span className="text-[13px] font-bold text-fg">Shopping Bag</span>
           <AnimatePresence mode="wait">
-            <motion.span key={items.length} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.2 }} className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 font-mono text-[8px] font-bold text-black">
+            <motion.span key={items.length} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.2 }} className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-brand font-mono text-[8.5px] font-bold text-white" style={{ width: "1.125rem", height: "1.125rem" }}>
               {items.length}
             </motion.span>
           </AnimatePresence>
         </div>
-        <X className="h-3.5 w-3.5 text-white/28" />
+        <X className="h-3.5 w-3.5 text-fg-subtle" />
       </div>
 
-      <div className="flex shrink-0 border-b border-white/[0.06]">
+      <div className="flex shrink-0 border-b border-border">
         {(["requests", "orders"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={cn("flex-1 py-2 text-[9px] font-semibold transition-colors", tab === t ? "border-b-2 border-cyan-400 text-cyan-300" : "text-white/28 hover:text-white/50")}>
+          <button key={t} onClick={() => setTab(t)} className={cn("flex-1 py-2.5 text-[10px] font-semibold transition-colors", tab === t ? "border-b-2 border-brand text-brand" : "text-fg-subtle hover:text-fg-muted")}>
             {t === "requests" ? "My Requests" : "Orders"}
           </button>
         ))}
@@ -574,41 +579,41 @@ function CartPreview() {
             <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex h-full flex-col">
               {ordered ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
-                    <Check className="h-5 w-5 text-green-400" />
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/15">
+                    <Check className="h-5 w-5 text-emerald-600" />
                   </motion.div>
-                  <p className="text-[11px] font-semibold text-white/65">Order placed!</p>
-                  <p className="text-[9px] text-white/30">Saved to order history</p>
+                  <p className="text-[12px] font-semibold text-fg-muted">Order placed!</p>
+                  <p className="text-[10px] text-fg-subtle">Saved to order history</p>
                 </div>
               ) : items.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <p className="text-[10px] text-white/25">Your bag is empty</p>
+                  <p className="text-[11px] text-fg-subtle">Your bag is empty</p>
                 </div>
               ) : (
                 <>
-                  <div className="min-h-0 flex-1 space-y-1.5 overflow-hidden px-3 py-2.5">
+                  <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
                     <AnimatePresence>
                       {items.map(item => (
-                        <motion.div key={item.id} layout initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28 }} className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2">
+                        <motion.div key={item.id} layout initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28 }} className="flex items-center justify-between rounded-xl border border-border bg-base px-3 py-2.5">
                           <div>
-                            <p className="text-[9px] font-semibold text-white">{item.title}</p>
-                            <p className="text-[8px] text-white/32">{item.price}</p>
+                            <p className="text-[10px] font-semibold text-fg">{item.title}</p>
+                            <p className="text-[9px] text-fg-muted">{item.price}</p>
                           </div>
-                          <X className="h-3 w-3 text-white/22" />
+                          <X className="h-3 w-3 text-fg-subtle" />
                         </motion.div>
                       ))}
                     </AnimatePresence>
                   </div>
-                  <div className="shrink-0 border-t border-white/[0.05] px-3 pb-3 pt-2.5">
-                    <div className="mb-2.5 flex items-center justify-between">
-                      <span className="text-[9px] text-white/38">Total</span>
-                      <span className="text-[12px] font-extrabold text-white">{items.length}.00 EUR</span>
+                  <div className="shrink-0 border-t border-border px-3 pb-3 pt-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-[10px] text-fg-muted">Total</span>
+                      <span className="text-[13px] font-extrabold text-fg">{items.length}.00 EUR</span>
                     </div>
                     <motion.button
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(34,211,238,0.45)" }}
-                      animate={{ boxShadow: ["0 0 0px rgba(34,211,238,0)", "0 0 22px rgba(34,211,238,0.35)", "0 0 0px rgba(34,211,238,0)"] }}
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(37,99,235,0.45)" }}
+                      animate={{ boxShadow: ["0 0 0px rgba(37,99,235,0)", "0 0 22px rgba(37,99,235,0.35)", "0 0 0px rgba(37,99,235,0)"] }}
                       transition={{ boxShadow: { duration: 2.2, repeat: Infinity } }}
-                      className="w-full rounded-xl bg-cyan-500 py-2.5 text-[10px] font-bold text-black"
+                      className="w-full rounded-xl bg-brand py-2.5 text-[11px] font-bold text-white"
                     >
                       Order All
                     </motion.button>
@@ -620,20 +625,20 @@ function CartPreview() {
 
           {tab === "orders" && (
             <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-3">
-              <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+              <div className="rounded-xl border border-border bg-base p-3.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-white">Order #001</span>
-                  <span className="text-[9px] font-semibold text-cyan-300">3.00 EUR</span>
+                  <span className="text-[10px] font-bold text-fg">Order #001</span>
+                  <span className="text-[10px] font-semibold text-brand">3.00 EUR</span>
                 </div>
                 <div className="mt-2 space-y-1">
                   {CART_ITEMS.map(item => (
-                    <p key={item.id} className="text-[8px] text-white/35">· {item.title}</p>
+                    <p key={item.id} className="text-[9px] text-fg-muted">· {item.title}</p>
                   ))}
                 </div>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <Clock className="h-2.5 w-2.5 text-white/20" />
-                  <span className="text-[7px] text-white/20">just now</span>
-                  <span className="ml-auto rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">COMPLETED</span>
+                <div className="mt-2.5 flex items-center gap-1.5">
+                  <Clock className="h-3 w-3 text-brand/50" />
+                  <span className="text-[8px] text-fg-subtle">just now</span>
+                  <span className="ml-auto rounded-full bg-emerald-500/10 px-1.5 py-px text-[7.5px] font-bold text-emerald-600">COMPLETED</span>
                 </div>
               </div>
             </motion.div>
@@ -660,8 +665,11 @@ const STAGGER = {
 
 export function FeatureBentoGrid() {
   return (
-    <section id="catalog" className="relative bg-ink px-6 py-28 text-white">
-      <div className="mx-auto max-w-6xl">
+    <section id="catalog" className="relative bg-base px-8 py-28">
+      {/* Decorative vehicle animation layer — behind all content */}
+      <VehicleBackground iconOpacity={0.15} laneOpacity={0.15} laneSpeed={34} floatAmplitude={13} />
+
+      <div className="relative z-[1] mx-auto max-w-7xl">
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -670,11 +678,13 @@ export function FeatureBentoGrid() {
           transition={{ duration: 0.6 }}
           className="mb-16 max-w-2xl"
         >
-          <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Built for the way enterprises buy data.
+          <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
+            Built for the way{" "}
+            <span className="text-brand">enterprises</span> buy data.
           </h2>
-          <p className="mt-4 text-white/50">
-            Every feature engineered for security, speed, and a frictionless B2B checkout.
+          <p className="mt-4 text-fg-muted">
+            Every feature engineered for security, speed, and a frictionless{" "}
+            <span className="font-semibold text-fg">B2B checkout</span>.
           </p>
         </motion.div>
 
@@ -683,23 +693,30 @@ export function FeatureBentoGrid() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.12 }}
           variants={STAGGER}
-          className="grid h-[700px] grid-cols-1 gap-5 lg:grid-cols-4 lg:grid-rows-2"
+          className="grid h-[820px] grid-cols-1 gap-6 lg:grid-cols-4 lg:grid-rows-2"
         >
 
           {/* ── Product Catalog (col-span-3, row-span-2) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={glowHover}
+            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl lg:col-span-3 lg:row-span-2"
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
+            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-3 lg:row-span-2"
           >
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/8 blur-[80px]" />
-            <div className="shrink-0 px-5 pt-4">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-cyan-300/55">Product Catalog</span>
-              <h3 className="mt-0.5 text-xl font-extrabold tracking-tight">Discover &amp; Filter</h3>
-              <p className="text-[11px] text-white/38">Fuzzy full-text search · 10 categories · OEM logos · live ticker · HTMX filters</p>
+            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/[0.06] blur-[80px]" />
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
             </div>
-            <div className="mx-5 mt-3 h-px shrink-0 bg-white/[0.06]" />
+            <div className="shrink-0 px-6 pt-5">
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Product Catalog</span>
+              <h3 className="mt-0.5 text-xl font-extrabold tracking-tight text-fg">Discover &amp; Filter</h3>
+              <p className="text-[11px] text-fg-muted">Fuzzy full-text search · 10 categories · OEM logos · live ticker · HTMX filters</p>
+            </div>
+            <div className="mx-6 mt-3 h-px shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <CatalogPreview />
             </div>
@@ -708,17 +725,24 @@ export function FeatureBentoGrid() {
           {/* ── Item Detail / OEM Orbital (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={glowHover}
+            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl lg:col-span-1 lg:row-span-1"
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
+            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            <div className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
-            <div className="shrink-0 px-5 pt-5">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-blue-300/55">Item Detail</span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight">OEM Deep-Dive</h3>
-              <p className="text-[10px] text-white/38">Orbital hub · Specs card · JSON Schema · Attributes</p>
+            <div className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-accent/[0.07] blur-[60px]" />
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
             </div>
-            <div className="mx-5 mt-3 h-px shrink-0 bg-white/[0.06]" />
+            <div className="shrink-0 px-5 pt-5">
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Item Detail</span>
+              <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">OEM Deep-Dive</h3>
+              <p className="text-[11px] text-fg-muted">Orbital hub · Specs card · JSON Schema · Attributes</p>
+            </div>
+            <div className="mx-5 mt-3 h-px shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <DetailPreview />
             </div>
@@ -727,17 +751,24 @@ export function FeatureBentoGrid() {
           {/* ── Shopping Cart (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={glowHover}
+            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl lg:col-span-1 lg:row-span-1"
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
+            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
-            <div className="shrink-0 px-5 pt-5">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-purple-300/55">Request System</span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight">Shopping Cart</h3>
-              <p className="text-[10px] text-white/38">localStorage persistence · UUID items · order history</p>
+            <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-brand/[0.06] blur-[60px]" />
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
             </div>
-            <div className="mx-5 mt-3 h-px shrink-0 bg-white/[0.06]" />
+            <div className="shrink-0 px-5 pt-5">
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Request System</span>
+              <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">Shopping Cart</h3>
+              <p className="text-[11px] text-fg-muted">localStorage persistence · UUID items · order history</p>
+            </div>
+            <div className="mx-5 mt-3 h-px shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <CartPreview />
             </div>

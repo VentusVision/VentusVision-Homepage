@@ -2,13 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --c-base:          #F7F9FC;
+  --c-surface:       #FFFFFF;
+  --c-border:        #E2E8F0;
+
+  --c-fg:            #0F172A;
+  --c-fg-muted:      #475569;
+  --c-fg-subtle:     #94A3B8;
+
+  --c-brand:         #2563EB;
+  --c-brand-hover:   #1D4ED8;
+  --c-brand-subtle:  #EFF6FF;
+  --c-brand-muted:   rgba(37, 99, 235, 0.10);
+
+  --c-accent:        #06B6D4;
+  --c-accent-subtle: rgba(6, 182, 212, 0.08);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-ink text-white antialiased;
+    background-color: var(--c-base);
+    color: var(--c-fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
