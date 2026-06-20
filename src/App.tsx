@@ -2,6 +2,7 @@ import { Hero } from "./components/sections/Hero";
 import { FeatureBentoGrid } from "./components/sections/FeatureBentoGrid";
 import { PlatformHighlights } from "./components/sections/PlatformHighlights";
 import { DataFlowBanner } from "./components/sections/DataFlowBanner";
+import { TechStackSection } from "./components/sections/TechStackSection";
 import { TeamSection } from "./components/sections/TeamSection";
 import { Footer } from "./components/sections/Footer";
 import { Navbar } from "./components/ui/Navbar";
@@ -15,6 +16,7 @@ function App() {
         <FeatureBentoGrid />
         <PlatformHighlights />
         <DataFlowBanner />
+        <TechStackSection />
         <TeamSection />
         <Footer />
       </main>

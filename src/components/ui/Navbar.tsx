@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight, Home, Database, BarChart3, Map, Users } from "lucide-react";
+import { Menu, X, ArrowRight, Home, Database, BarChart3, Map, Users, Layers } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM, springSnappy } from "../../lib/motion";
@@ -10,7 +10,8 @@ const NAV_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
   { label: "Data Catalog",  href: "#catalog",  Icon: Database  },
   { label: "Data Explorer", href: "#explorer", Icon: BarChart3 },
   { label: "Map Explorer",  href: "#map",      Icon: Map       },
-  { label: "Team",          href: "#team",     Icon: Users     },
+  { label: "Tech Stack",    href: "#techstack", Icon: Layers    },
+  { label: "Team",          href: "#team",      Icon: Users     },
 ];
 
 export function Navbar() {

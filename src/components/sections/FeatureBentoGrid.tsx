@@ -1,50 +1,12 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { LucideIcon } from "lucide-react";
+import { useEffect, useRef, useState, useMemo, useCallback, type CSSProperties } from "react";
 import {
-  Search,
-  ShoppingCart,
-  Battery,
-  BatteryCharging,
-  Zap,
-  Activity,
-  Tag,
-  Copy,
-  X,
-  ArrowUpDown,
-  Check,
-  Clock,
-  Thermometer,
-  Gauge,
-  Droplets,
-  Wrench,
-  Shield,
-  AlertTriangle,
-  MapPin,
-  Navigation,
-  Car,
-  Wifi,
-  Radio,
-  Smartphone,
-  Plug,
-  CreditCard,
-  Home,
-  Settings,
-  Key,
-  BarChart2,
-  Wind,
-  Calendar,
-  Cpu,
-  Eye,
-  Phone,
-  Star,
-  Moon,
-  Globe,
-  Lock,
-  User,
-  Download,
-  Server,
-  Volume2,
+  Search, ShoppingCart, Battery, Tag, Copy, X, ArrowUpDown, Check, Clock,
+  Zap, Activity, Thermometer, Gauge, Droplets, Wrench, Shield, AlertTriangle,
+  MapPin, Navigation, Car, Wifi, Radio, Smartphone, Plug, CreditCard, Home,
+  Settings, Key, BarChart2, Wind, Calendar, Cpu, Eye, Phone, Star, Moon,
+  Globe, Lock, User, Server, Volume2, BatteryCharging, ChevronDown, Flame,
+  SlidersHorizontal, SearchX,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM } from "../../lib/motion";
@@ -72,1017 +34,8 @@ const TICKER_RAW = [
   "gearState · 31m ago",
 ];
 
-interface Product {
-  title: string;
-  status: "AVAILABLE" | "DRAFT";
-  types: string[];
-  oems: string[];
-  description: string;
-  Icon: LucideIcon;
-  color: string;
-}
+import { CATALOG_ITEMS, CATALOG_CATEGORIES, CATALOG_PREVIEW_ITEMS, type DataItem } from "../../data/catalog";
 
-interface Category {
-  name: string;
-  count: number;
-  products: Product[];
-}
-// 8 rotating colors per card slot
-const C = [
-  "#60a5fa",
-  "#4ade80",
-  "#fb923c",
-  "#a855f7",
-  "#f43f5e",
-  "#facc15",
-  "#22d3ee",
-  "#ec4899",
-] as const;
-
-const CATALOG_DATA: Category[] = [
-  {
-    name: "Charging & EV",
-    count: 34,
-    products: [
-      {
-        title: "AC Charging Session Data",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW"],
-        Icon: Zap,
-        color: C[0],
-        description:
-          "Real-time and historical data on AC charging events including start/end time, energy transferred, and charging point ID.",
-      },
-      {
-        title: "DC Fast Charge Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Tesla", "Porsche", "Hyundai"],
-        Icon: BatteryCharging,
-        color: C[1],
-        description:
-          "Data on DC fast charging sessions including peak power, thermal throttling events, and session duration.",
-      },
-      {
-        title: "State of Charge (SoC)",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "VW", "Tesla", "Renault"],
-        Icon: Battery,
-        color: C[2],
-        description:
-          "Current battery charge level as a percentage, sampled at configurable intervals.",
-      },
-      {
-        title: "Charging Cable Connection Status",
-        status: "AVAILABLE",
-        types: ["B2C"],
-        oems: ["BMW", "VW", "Renault", "Stellantis"],
-        Icon: Plug,
-        color: C[3],
-        description:
-          "Boolean status indicating whether a charging cable is currently connected and locked.",
-      },
-      {
-        title: "Est. Charging Completion Time",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["Tesla", "BMW", "Audi", "Porsche"],
-        Icon: Clock,
-        color: C[4],
-        description:
-          "Predicted time until battery is fully charged based on current SoC, charging rate, and battery temperature.",
-      },
-      {
-        title: "Charging Cost per Session",
-        status: "DRAFT",
-        types: ["B2C"],
-        oems: ["BMW", "Mercedes-Benz", "Tesla"],
-        Icon: CreditCard,
-        color: C[5],
-        description:
-          "Cost data per charging session including tariff type, currency, and total amount billed.",
-      },
-      {
-        title: "Wallbox Communication Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "VW", "Renault"],
-        Icon: Home,
-        color: C[6],
-        description:
-          "Data exchanged between the vehicle and home charging station (OCPP protocol), including schedules and load management signals.",
-      },
-      {
-        title: "Preconditioning Activation Events",
-        status: "AVAILABLE",
-        types: ["B2C"],
-        oems: ["BMW", "Tesla", "Mercedes-Benz"],
-        Icon: Thermometer,
-        color: C[7],
-        description:
-          "Records of cabin and battery preconditioning events triggered remotely or by departure timer.",
-      },
-    ],
-  },
-  {
-    name: "Battery & Energy",
-    count: 62,
-    products: [
-      {
-        title: "Battery Health Index",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Hyundai"],
-        Icon: Battery,
-        color: C[0],
-        description:
-          "Aggregated health score (0–100) of the high-voltage battery based on capacity fade and internal resistance measurements.",
-      },
-      {
-        title: "Battery Cell Temperature",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Tesla", "Porsche", "Audi"],
-        Icon: Thermometer,
-        color: C[1],
-        description:
-          "Temperature readings from individual battery cell groups during driving and charging cycles.",
-      },
-      {
-        title: "State of Health (SoH)",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Mercedes-Benz", "VW", "Renault", "Hyundai"],
-        Icon: Battery,
-        color: C[2],
-        description:
-          "Current battery capacity as a percentage of original design capacity, updated after each full cycle.",
-      },
-      {
-        title: "Auxiliary Energy Consumption",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Stellantis"],
-        Icon: Zap,
-        color: C[3],
-        description:
-          "Energy consumed by auxiliary systems (HVAC, infotainment, lighting) broken down per subsystem.",
-      },
-      {
-        title: "Regenerative Braking Energy",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["Tesla", "BMW", "Hyundai", "Renault", "VW"],
-        Icon: Activity,
-        color: C[4],
-        description:
-          "Amount of energy recovered through regenerative braking per trip and cumulatively.",
-      },
-      {
-        title: "Battery Charge Event",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Tesla", "Porsche", "VW"],
-        Icon: BatteryCharging,
-        color: C[5],
-        description:
-          "Detailed log of every charge event including duration, energy in kWh, start SoC, and end SoC.",
-      },
-      {
-        title: "Thermal Management Status",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "Mercedes-Benz", "Audi", "Porsche"],
-        Icon: Thermometer,
-        color: C[6],
-        description:
-          "Status of active battery cooling and heating systems including pump speed and coolant temperature.",
-      },
-      {
-        title: "Battery Charge Target Setting",
-        status: "AVAILABLE",
-        types: ["B2C"],
-        oems: ["BMW", "Tesla", "Audi", "Mercedes-Benz", "VW"],
-        Icon: Tag,
-        color: C[7],
-        description:
-          "User-configured maximum charge level setting to preserve long-term battery health.",
-      },
-    ],
-  },
-  {
-    name: "Powertrain & Engine",
-    count: 24,
-    products: [
-      {
-        title: "Engine RPM Telemetry",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Toyota"],
-        Icon: Gauge,
-        color: C[0],
-        description:
-          "Continuous engine speed data in RPM sampled at 10 Hz during active driving.",
-      },
-      {
-        title: "Torque Output Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Porsche", "Mercedes-Benz", "Tesla"],
-        Icon: Settings,
-        color: C[1],
-        description:
-          "Actual vs. requested torque values per motor/engine, including split torque for AWD systems.",
-      },
-      {
-        title: "Transmission Gear State",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Stellantis"],
-        Icon: ArrowUpDown,
-        color: C[2],
-        description:
-          "Current gear position, shift events, and transmission mode (D/S/N/R) with timestamps.",
-      },
-      {
-        title: "Motor Temperature",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Tesla", "Hyundai", "Audi", "Porsche"],
-        Icon: Thermometer,
-        color: C[3],
-        description:
-          "Temperature readings for electric motor stators and windings sampled during high-load events.",
-      },
-      {
-        title: "Drivetrain Mode Selection",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Porsche", "Mercedes-Benz", "Ford", "Volvo"],
-        Icon: Car,
-        color: C[4],
-        description:
-          "Active driving mode (Eco, Comfort, Sport, Offroad) with timestamp and mode duration.",
-      },
-      {
-        title: "AWD Torque Distribution",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Porsche", "Mercedes-Benz", "VW"],
-        Icon: Activity,
-        color: C[5],
-        description:
-          "Real-time torque split between front and rear axle for AWD vehicles in percentage.",
-      },
-      {
-        title: "Hybrid System Energy Flow",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["Toyota", "BMW", "Mercedes-Benz", "Stellantis", "Ford"],
-        Icon: Zap,
-        color: C[6],
-        description:
-          "Power flow direction and magnitude between ICE, electric motor, and battery in hybrid vehicles.",
-      },
-      {
-        title: "Engine Start/Stop Events",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Renault", "Ford"],
-        Icon: Key,
-        color: C[7],
-        description:
-          "Log of engine start and stop events including ignition key, remote start, and auto-start.",
-      },
-    ],
-  },
-  {
-    name: "Fuel & Combustion",
-    count: 42,
-    products: [
-      {
-        title: "Fuel Level Sensor Data",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Toyota",
-          "Stellantis",
-        ],
-        Icon: Gauge,
-        color: C[0],
-        description:
-          "Current fuel tank level in liters and as a percentage, updated on change events.",
-      },
-      {
-        title: "Instantaneous Fuel Consumption",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Renault"],
-        Icon: Activity,
-        color: C[1],
-        description:
-          "Real-time fuel consumption in liters per 100 km calculated every second during active driving.",
-      },
-      {
-        title: "Average Fuel Consumption/Trip",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Toyota", "Ford", "Volvo"],
-        Icon: BarChart2,
-        color: C[2],
-        description:
-          "Average fuel consumption per completed trip, including highway and urban breakdowns.",
-      },
-      {
-        title: "CO₂ Emission Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Renault",
-          "Stellantis",
-        ],
-        Icon: Wind,
-        color: C[3],
-        description:
-          "Calculated CO₂ emissions per trip and per 100 km based on fuel consumption and fuel type.",
-      },
-      {
-        title: "Refueling Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Toyota"],
-        Icon: Droplets,
-        color: C[4],
-        description:
-          "Log of refueling events with timestamp, volume added, and GPS location of the station.",
-      },
-      {
-        title: "AdBlue / DEF Level",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Volvo"],
-        Icon: Droplets,
-        color: C[5],
-        description:
-          "Current AdBlue (Diesel Exhaust Fluid) level for diesel vehicles, with low-level alerts.",
-      },
-      {
-        title: "Engine Idle Time Data",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: [
-          "Ford",
-          "VW",
-          "Mercedes-Benz",
-          "Renault",
-          "Stellantis",
-          "Toyota",
-        ],
-        Icon: Clock,
-        color: C[6],
-        description:
-          "Cumulative idle time per trip and per day with fuel burned during idle.",
-      },
-      {
-        title: "Fuel Type Identification",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "VW", "Ford", "Renault", "Stellantis"],
-        Icon: Tag,
-        color: C[7],
-        description:
-          "Detected fuel type (petrol, diesel, LPG, E85) based on sensor data and ECU configuration.",
-      },
-    ],
-  },
-  {
-    name: "Maintenance & Diag.",
-    count: 88,
-    products: [
-      {
-        title: "OBD-II Diagnostic Trouble Codes",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Toyota",
-          "Stellantis",
-          "Renault",
-        ],
-        Icon: Wrench,
-        color: C[0],
-        description:
-          "Active and pending fault codes (DTCs) from all ECUs with code description and severity level.",
-      },
-      {
-        title: "Service Interval Status",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Volvo", "Toyota"],
-        Icon: Calendar,
-        color: C[1],
-        description:
-          "Remaining distance and days until next scheduled service (oil, brake fluid, inspection).",
-      },
-      {
-        title: "Brake Pad Wear Level",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Porsche", "VW"],
-        Icon: Shield,
-        color: C[2],
-        description:
-          "Current brake pad thickness as a percentage of original depth, per axle.",
-      },
-      {
-        title: "Tyre Pressure Monitoring",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Tesla",
-          "Ford",
-          "Renault",
-        ],
-        Icon: Activity,
-        color: C[3],
-        description:
-          "Real-time tyre pressure readings for all four wheels via TPMS sensors, with temperature.",
-      },
-      {
-        title: "Oil Life Remaining",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Ford", "Toyota", "Stellantis"],
-        Icon: Droplets,
-        color: C[4],
-        description:
-          "Calculated engine oil life based on driving patterns, temperature, and mileage.",
-      },
-      {
-        title: "ECU Software Version",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "VW"],
-        Icon: Cpu,
-        color: C[5],
-        description:
-          "Current software version identifiers for all major electronic control units in the vehicle.",
-      },
-      {
-        title: "Battery 12V Status",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Renault",
-          "Toyota",
-        ],
-        Icon: Battery,
-        color: C[6],
-        description:
-          "Voltage and charge state of the 12V auxiliary battery used for electronics and starting.",
-      },
-      {
-        title: "Wiper Blade Usage Events",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "VW", "Renault", "Stellantis", "Ford"],
-        Icon: Activity,
-        color: C[7],
-        description:
-          "Count and frequency of windshield wiper activations as proxy for weather and road conditions.",
-      },
-    ],
-  },
-  {
-    name: "Safety & Incidents",
-    count: 51,
-    products: [
-      {
-        title: "Auto Emergency Braking Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Volvo", "Tesla", "Hyundai"],
-        Icon: AlertTriangle,
-        color: C[0],
-        description:
-          "Records of AEB system activations including trigger speed, deceleration force, and GPS coordinates.",
-      },
-      {
-        title: "Airbag Deployment Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Toyota", "Ford"],
-        Icon: Shield,
-        color: C[1],
-        description:
-          "Log of airbag and seatbelt pretensioner deployment with timestamp and impact direction.",
-      },
-      {
-        title: "Lane Departure Warning Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Volvo", "Ford"],
-        Icon: AlertTriangle,
-        color: C[2],
-        description:
-          "Instances where the vehicle crossed lane markings without indicator activation.",
-      },
-      {
-        title: "Collision Detection Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Volvo", "Tesla"],
-        Icon: AlertTriangle,
-        color: C[3],
-        description:
-          "Accelerometer data around collision events with G-force values per axis and direction.",
-      },
-      {
-        title: "Driver Attention Alert Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Volvo", "Toyota"],
-        Icon: Eye,
-        color: C[4],
-        description:
-          "Activations of the driver drowsiness and attention monitoring system with severity level.",
-      },
-      {
-        title: "Forward Collision Warning Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Hyundai", "Ford"],
-        Icon: AlertTriangle,
-        color: C[5],
-        description:
-          "Pre-collision alert events with time-to-collision value, relative speed, and GPS position.",
-      },
-      {
-        title: "Blind Spot Detection Events",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Ford", "Volvo", "Stellantis"],
-        Icon: Eye,
-        color: C[6],
-        description:
-          "Count and timing of blind spot warning activations per trip segment.",
-      },
-      {
-        title: "Post-Crash Emergency Call Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Renault", "Stellantis"],
-        Icon: Phone,
-        color: C[7],
-        description:
-          "eCall data transmitted after a crash including GPS coordinates, severity, and occupant count.",
-      },
-    ],
-  },
-  {
-    name: "Trip & Driving Behavior",
-    count: 31,
-    products: [
-      {
-        title: "Trip Summary Data",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Tesla",
-          "Ford",
-          "Renault",
-        ],
-        Icon: MapPin,
-        color: C[0],
-        description:
-          "Per-trip summary including start/end time, total distance, average speed, and energy consumed.",
-      },
-      {
-        title: "Harsh Braking Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Renault",
-          "Stellantis",
-        ],
-        Icon: AlertTriangle,
-        color: C[1],
-        description:
-          "Instances of hard braking with deceleration above threshold (>0.3g), with GPS and speed context.",
-      },
-      {
-        title: "Harsh Acceleration Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Porsche", "Tesla", "Ford"],
-        Icon: Gauge,
-        color: C[2],
-        description:
-          "Instances of rapid acceleration above defined threshold with timestamp, speed, and location.",
-      },
-      {
-        title: "Cornering Behavior Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Porsche", "Mercedes-Benz", "Tesla"],
-        Icon: Activity,
-        color: C[3],
-        description:
-          "Lateral G-force data during cornering events above threshold, aggregated per trip.",
-      },
-      {
-        title: "Speeding Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Renault",
-          "Volvo",
-        ],
-        Icon: AlertTriangle,
-        color: C[4],
-        description:
-          "Records of instances where vehicle speed exceeded the legal speed limit, with duration and location.",
-      },
-      {
-        title: "Driving Score per Trip",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Toyota", "Renault", "Hyundai"],
-        Icon: Star,
-        color: C[5],
-        description:
-          "Aggregated driving quality score (0–100) per trip based on acceleration, braking, and cornering.",
-      },
-      {
-        title: "Night Driving Hours",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Ford", "Renault", "Stellantis"],
-        Icon: Moon,
-        color: C[6],
-        description:
-          "Total hours driven between 22:00 and 06:00, aggregated per week and per driver.",
-      },
-      {
-        title: "Motorway vs. Urban Split",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Toyota", "Volvo"],
-        Icon: MapPin,
-        color: C[7],
-        description:
-          "Percentage breakdown of distance driven on motorways, rural roads, and urban environments.",
-      },
-    ],
-  },
-  {
-    name: "Location & Navigation",
-    count: 11,
-    products: [
-      {
-        title: "Real-Time Vehicle Position",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Tesla",
-          "Ford",
-          "Renault",
-        ],
-        Icon: MapPin,
-        color: C[0],
-        description:
-          "Current GPS coordinates with accuracy radius, altitude, and heading, updated at 1 Hz.",
-      },
-      {
-        title: "Trip Route Polyline",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Volvo", "Ford"],
-        Icon: Navigation,
-        color: C[1],
-        description:
-          "Full GPS track of each trip as an encoded polyline, sampled every 5 seconds.",
-      },
-      {
-        title: "Home & Work Location Detection",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "Mercedes-Benz", "VW", "Toyota", "Renault"],
-        Icon: Home,
-        color: C[2],
-        description:
-          "Inferred home and work locations based on recurring parking patterns, anonymized.",
-      },
-      {
-        title: "Parking Location Data",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Stellantis"],
-        Icon: MapPin,
-        color: C[3],
-        description:
-          "GPS coordinates and duration of each parking event including indoor/outdoor detection.",
-      },
-      {
-        title: "Navigation Destination Data",
-        status: "DRAFT",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "VW"],
-        Icon: Navigation,
-        color: C[4],
-        description:
-          "Anonymized destination categories (home, work, shopping, charging) from active navigation.",
-      },
-      {
-        title: "Geofence Entry/Exit Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Tesla",
-          "Ford",
-          "Renault",
-          "Volvo",
-        ],
-        Icon: MapPin,
-        color: C[5],
-        description:
-          "Timestamps and coordinates of vehicle entering and exiting predefined geographic zones.",
-      },
-      {
-        title: "Odometer Reading",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Toyota",
-          "Renault",
-          "Stellantis",
-        ],
-        Icon: Activity,
-        color: C[6],
-        description:
-          "Cumulative total vehicle mileage in km, updated on every trip completion.",
-      },
-      {
-        title: "Country Border Crossings",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Volvo", "Renault"],
-        Icon: Globe,
-        color: C[7],
-        description:
-          "Log of detected country border crossings with timestamp, origin, and destination country.",
-      },
-    ],
-  },
-  {
-    name: "Body, Access & Comfort",
-    count: 42,
-    products: [
-      {
-        title: "Door Open/Close Events",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Renault",
-          "Stellantis",
-        ],
-        Icon: Car,
-        color: C[0],
-        description:
-          "Timestamped log of all door open and close events per door position (FL, FR, RL, RR, trunk).",
-      },
-      {
-        title: "Central Lock Status",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Tesla", "Renault"],
-        Icon: Lock,
-        color: C[1],
-        description:
-          "Current lock state of all doors and trunk, updated on change events.",
-      },
-      {
-        title: "Cabin Temperature Data",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Tesla", "Volvo"],
-        Icon: Thermometer,
-        color: C[2],
-        description:
-          "Interior temperature sensor readings including front/rear cabin and cargo area.",
-      },
-      {
-        title: "Climate Control Settings",
-        status: "AVAILABLE",
-        types: ["B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Porsche", "VW"],
-        Icon: Wind,
-        color: C[3],
-        description:
-          "Active HVAC settings including target temperature, fan speed, seat heating, and AC state.",
-      },
-      {
-        title: "Window Position Data",
-        status: "DRAFT",
-        types: ["B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Porsche", "Tesla"],
-        Icon: Car,
-        color: C[4],
-        description:
-          "Current window open/close percentage for all windows including sunroof.",
-      },
-      {
-        title: "Seat Occupation Detection",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Volvo", "VW"],
-        Icon: User,
-        color: C[5],
-        description:
-          "Detection of occupied seats via pressure sensors, used for seatbelt reminder logic.",
-      },
-      {
-        title: "Exterior Lighting Status",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Ford", "Renault"],
-        Icon: Car,
-        color: C[6],
-        description:
-          "State of all exterior lights (headlights, daytime running lights, indicators, brake lights).",
-      },
-      {
-        title: "Trunk Open/Close Events",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Stellantis", "Renault"],
-        Icon: Car,
-        color: C[7],
-        description:
-          "Timestamped events for trunk lid open and close with duration and GPS context.",
-      },
-    ],
-  },
-  {
-    name: "Connectivity & Remote",
-    count: 9,
-    products: [
-      {
-        title: "Remote Start Events",
-        status: "AVAILABLE",
-        types: ["B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "Hyundai", "Renault"],
-        Icon: Radio,
-        color: C[0],
-        description:
-          "Log of remote engine or climate start commands with source (app/key), timestamp, and result.",
-      },
-      {
-        title: "OTA Update Status",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Tesla", "Audi", "Mercedes-Benz", "VW"],
-        Icon: Download,
-        color: C[1],
-        description:
-          "Status and history of over-the-air software updates including version, size, and install result.",
-      },
-      {
-        title: "Mobile App Connection Events",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Tesla",
-          "Renault",
-          "Hyundai",
-        ],
-        Icon: Smartphone,
-        color: C[2],
-        description:
-          "Log of mobile app connection and disconnection events with platform (iOS/Android) and duration.",
-      },
-      {
-        title: "Vehicle API Health Status",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "VW"],
-        Icon: Server,
-        color: C[3],
-        description:
-          "Uptime and response time data for vehicle connectivity API endpoints per manufacturer.",
-      },
-      {
-        title: "Telematics Unit Status",
-        status: "AVAILABLE",
-        types: ["B2B"],
-        oems: [
-          "BMW",
-          "Audi",
-          "Mercedes-Benz",
-          "VW",
-          "Ford",
-          "Stellantis",
-          "Renault",
-        ],
-        Icon: Wifi,
-        color: C[4],
-        description:
-          "Connection status of the embedded TCU including network type (4G/5G) and signal strength.",
-      },
-      {
-        title: "Remote Horn & Lights Events",
-        status: "DRAFT",
-        types: ["B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Renault", "Hyundai"],
-        Icon: Volume2,
-        color: C[5],
-        description:
-          "Log of remotely triggered horn and flash-lights commands with timestamp and GPS context.",
-      },
-      {
-        title: "Shared Vehicle Access Log",
-        status: "AVAILABLE",
-        types: ["B2B", "B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "Tesla", "VW"],
-        Icon: Key,
-        color: C[6],
-        description:
-          "Record of vehicle access grants to secondary users including time windows and permissions.",
-      },
-      {
-        title: "In-Car Wi-Fi Usage Data",
-        status: "DRAFT",
-        types: ["B2C"],
-        oems: ["BMW", "Audi", "Mercedes-Benz", "VW", "Renault"],
-        Icon: Wifi,
-        color: C[7],
-        description:
-          "Aggregated data usage of the vehicle's built-in Wi-Fi hotspot per session.",
-      },
-    ],
-  },
-];
 
 const CART_ITEMS = [
   { id: 1, title: "Battery Health Index", price: "1.00 EUR" },
@@ -1099,6 +52,234 @@ const ORBITAL_NODES = [
   { label: "Cupra", angle: 150 },
   { label: "VW CV", angle: 210 },
 ];
+
+// ─────────────────────────────────────────────
+// Filter / Search / Sort hook
+// ─────────────────────────────────────────────
+
+type SortKey = "popularity" | "az" | "za" | "status";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "popularity",  label: "Popularity"       },
+  { value: "az",          label: "Alphabetical A–Z"  },
+  { value: "za",          label: "Alphabetical Z–A"  },
+  { value: "status",      label: "Available first"   },
+];
+
+function useCatalogFilter(items: DataItem[]) {
+  const [query,         setQuery]         = useState("");
+  const [debouncedQ,    setDebouncedQ]    = useState("");
+  const [selectedCat,   setSelectedCat]   = useState<string | null>(null);
+  const [sortBy,        setSortBy]        = useState<SortKey>("popularity");
+  const [highlightOn,   setHighlightOn]   = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query.trim()), 200);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const filtered = useMemo(() => {
+    let result = [...items];
+
+    if (selectedCat) result = result.filter(i => i.category === selectedCat);
+
+    if (debouncedQ) {
+      const words = debouncedQ.toLowerCase().split(/\s+/).filter(Boolean);
+      result = result.filter(item => {
+        const hay = `${item.title} ${item.description} ${item.category} ${item.suppliers.join(" ")}`.toLowerCase();
+        return words.every(w => hay.includes(w));
+      });
+    }
+
+    switch (sortBy) {
+      case "az":     result.sort((a, b) => a.title.localeCompare(b.title)); break;
+      case "za":     result.sort((a, b) => b.title.localeCompare(a.title)); break;
+      case "status": result.sort((a, b) => (a.status === "AVAILABLE" ? -1 : 1)); break;
+    }
+
+    return result;
+  }, [items, debouncedQ, selectedCat, sortBy]);
+
+  const clearAll = useCallback(() => { setQuery(""); setSelectedCat(null); }, []);
+
+  return { query, setQuery, debouncedQ, selectedCat, setSelectedCat, sortBy, setSortBy, highlightOn, setHighlightOn, filtered, clearAll };
+}
+
+// ─────────────────────────────────────────────
+// Auto-demo sequences
+// ─────────────────────────────────────────────
+
+type DemoStep =
+  | { kind: "type";   value: string }
+  | { kind: "cat";    value: string | null }
+  | { kind: "sort";   value: SortKey }
+  | { kind: "pause";  ms: number }
+  | { kind: "clear" };
+
+const DEMO_SEQUENCE: DemoStep[] = [
+  { kind: "pause",  ms: 800 },
+  { kind: "type",   value: "battery health" },
+  { kind: "pause",  ms: 2400 },
+  { kind: "clear" },
+  { kind: "pause",  ms: 400 },
+  { kind: "cat",    value: "Location & Navigation" },
+  { kind: "pause",  ms: 2600 },
+  { kind: "sort",   value: "az" },
+  { kind: "pause",  ms: 2200 },
+  { kind: "sort",   value: "popularity" },
+  { kind: "cat",    value: null },
+  { kind: "pause",  ms: 400 },
+  { kind: "type",   value: "charging" },
+  { kind: "pause",  ms: 2000 },
+  { kind: "clear" },
+  { kind: "pause",  ms: 400 },
+  { kind: "cat",    value: "Safety & Incidents" },
+  { kind: "pause",  ms: 2500 },
+  { kind: "sort",   value: "status" },
+  { kind: "pause",  ms: 2000 },
+  { kind: "sort",   value: "popularity" },
+  { kind: "cat",    value: null },
+  { kind: "pause",  ms: 400 },
+];
+
+function useAutoDemo(
+  inView: boolean,
+  setQuery: (q: string) => void,
+  setSelectedCat: (c: string | null) => void,
+  setSortBy: (s: SortKey) => void,
+) {
+  const stepRef  = useRef(0);
+  const charRef  = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const run = useCallback(() => {
+    const step = DEMO_SEQUENCE[stepRef.current % DEMO_SEQUENCE.length];
+
+    if (step.kind === "clear") {
+      setQuery("");
+      charRef.current = 0;
+      stepRef.current++;
+      timerRef.current = setTimeout(run, 60);
+
+    } else if (step.kind === "cat") {
+      setSelectedCat(step.value);
+      stepRef.current++;
+      timerRef.current = setTimeout(run, 60);
+
+    } else if (step.kind === "sort") {
+      setSortBy(step.value);
+      stepRef.current++;
+      timerRef.current = setTimeout(run, 60);
+
+    } else if (step.kind === "pause") {
+      stepRef.current++;
+      timerRef.current = setTimeout(run, step.ms);
+
+    } else if (step.kind === "type") {
+      const target = step.value;
+      if (charRef.current <= target.length) {
+        setQuery(target.slice(0, charRef.current));
+        charRef.current++;
+        timerRef.current = setTimeout(run, charRef.current === 0 ? 0 : 75);
+      } else {
+        charRef.current = 0;
+        stepRef.current++;
+        timerRef.current = setTimeout(run, 60);
+      }
+    }
+  }, [setQuery, setSelectedCat, setSortBy]);
+
+  useEffect(() => {
+    if (!inView) return;
+    timerRef.current = setTimeout(run, 600);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [inView, run]);
+}
+
+// ─────────────────────────────────────────────
+// Highlight component
+// ─────────────────────────────────────────────
+
+function Highlight({ text, query, on }: { text: string; query: string; on: boolean }) {
+  if (!on || !query.trim()) return <>{text}</>;
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  const escaped = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1
+          ? <mark key={i} className="rounded bg-brand/15 font-semibold not-italic text-brand">{part}</mark>
+          : <span key={i}>{part}</span>
+      )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Sort Dropdown
+// ─────────────────────────────────────────────
+
+function SortDropdown({ value, onChange }: { value: SortKey; onChange: (v: SortKey) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+  const current = SORT_OPTIONS.find(o => o.value === value)!;
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 rounded-full border border-border bg-base px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:border-brand/40 hover:text-brand"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <ArrowUpDown className="h-3.5 w-3.5" />
+        {current.label}
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            role="listbox"
+            className="absolute right-0 top-full z-50 mt-1.5 min-w-[200px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_8px_32px_rgba(37,99,235,0.12),0_2px_8px_rgba(15,23,42,0.08)]"
+          >
+            <div className="px-3 pb-1.5 pt-2.5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-fg-subtle">Sortieren nach</p>
+            </div>
+            {SORT_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                role="option"
+                aria-selected={opt.value === value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={cn(
+                  "flex w-full items-center gap-2.5 px-3 py-2 text-[13px] transition-colors",
+                  opt.value === value ? "bg-brand-subtle font-semibold text-brand" : "text-fg-muted hover:bg-base hover:text-fg"
+                )}
+              >
+                {opt.value === "popularity" && <Flame className="h-3.5 w-3.5" />}
+                {opt.value === "az"         && <ArrowUpDown className="h-3.5 w-3.5" />}
+                {opt.value === "za"         && <ArrowUpDown className="h-3.5 w-3.5 scale-y-[-1]" />}
+                {opt.value === "status"     && <Clock className="h-3.5 w-3.5" />}
+                {opt.label}
+                {opt.value === value && <Check className="ml-auto h-3.5 w-3.5" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────
 // Micro-components
@@ -1132,72 +313,77 @@ function TypedSearch({ term }: { term: string }) {
 function LiveTicker() {
   const dup = [...TICKER_RAW, ...TICKER_RAW];
   return (
-    <div className="overflow-hidden border-b border-border bg-brand-subtle">
+    <div
+      className="relative overflow-hidden border-b border-brand/15"
+      style={{
+        background: "linear-gradient(90deg, rgba(37,99,235,0.07) 0%, rgba(6,182,212,0.07) 100%)",
+      }}
+    >
+      {/* Left + right fade masks */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[rgba(37,99,235,0.09)] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[rgba(6,182,212,0.09)] to-transparent" />
+
       <motion.div
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-        className="flex gap-8 whitespace-nowrap px-4 py-1.5"
+        transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+        className="flex gap-6 whitespace-nowrap py-2 pl-4"
       >
         {dup.map((item, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-1.5 font-mono text-[8px] text-cyan-300/45"
+            className="inline-flex items-center gap-2 font-mono text-[12px] font-medium"
           >
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
-            NEW: {item}
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #06B6D4)",
+                boxShadow: "0 0 6px rgba(37,99,235,0.55)",
+              }}
+            />
+            <span className="text-brand/70">NEW:</span>
+            <span className="text-fg-muted">{item}</span>
+            <span className="ml-1 text-[11px] text-fg-subtle opacity-50">·</span>
           </span>
         ))}
       </motion.div>
     </div>
   );
 }
-//das ist komm
 function ProductCard({
-  title,
-  status,
-  types,
-  oems,
-  description,
-  Icon,
-  delay,
-}: Omit<Product, "color"> & { delay: number }) {
+  title, status, type, suppliers, description, Icon, delay, query = "", highlightOn = false,
+}: Omit<DataItem, "id" | "category"> & { delay: number; query?: string; highlightOn?: boolean }) {
+  const typeLabels = type.split(" + ") as ("B2B" | "B2C")[];
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.34, ease: EASE_PREMIUM }}
-      className="flex h-full flex-col rounded-xl border border-border bg-base p-3.5"
+      className="flex h-full min-h-full flex-col rounded-xl border border-border bg-base p-5"
     >
-      {/* Title + icon */}
-      <div className="flex items-start justify-between gap-1">
-        <p className="text-[9.5px] font-bold leading-snug text-fg">
-          {title}
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[15px] font-bold leading-snug text-fg">
+          <Highlight text={title} query={query} on={highlightOn} />
         </p>
         <span className="mt-0.5 shrink-0 rounded-md bg-brand-subtle p-2">
-          <Icon className="h-3 w-3 text-brand" />
+          <Icon className="h-5 w-5 text-brand" />
         </span>
       </div>
 
-      {/* Badges */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-[3px]">
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span
           className={cn(
-            "rounded-full px-1.5 py-[2px] text-[6px] font-bold uppercase tracking-wide",
-            status === "AVAILABLE"
-              ? "bg-green-500/15 text-green-400"
-              : "bg-yellow-500/15 text-yellow-400",
+            "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide",
+            status === "AVAILABLE" ? "bg-green-500/15 text-green-500" : "bg-yellow-500/15 text-yellow-500",
           )}
         >
           ● {status}
         </span>
-        {types.map((t) => (
+        {typeLabels.map((t) => (
           <span
             key={t}
             className={cn(
-              "rounded-full px-1.5 py-[2px] text-[6px] font-semibold",
-              t === "B2B"
-                ? "bg-blue-500/15 text-blue-300"
-                : "bg-orange-500/15 text-orange-300",
+              "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+              t === "B2B" ? "bg-blue-500/15 text-blue-500" : "bg-orange-500/15 text-orange-500",
             )}
           >
             {t}
@@ -1205,24 +391,19 @@ function ProductCard({
         ))}
       </div>
 
-      {/* Description */}
-      <p className="mt-3 line-clamp-2 text-[7.5px] leading-[1.55] text-fg-muted">
-        {description}
+      <p className="mt-3 line-clamp-4 text-[13px] leading-relaxed text-fg-muted">
+        <Highlight text={description} query={query} on={highlightOn} />
       </p>
 
-      {/* OEM chips + cart */}
-      <div className="mt-auto flex items-end justify-between gap-1 pt-2">
-        <div className="flex flex-wrap gap-[3px]">
-          {oems.slice(0, 2).map((oem) => (
-            <span
-              key={oem}
-              className="rounded border border-white/[0.08] px-1 py-[1px] font-mono text-[5.5px] uppercase tracking-wide text-fg-subtle"
-            >
-              {oem}
+      <div className="mt-auto flex items-end justify-between gap-1 pt-3">
+        <div className="flex flex-wrap gap-1.5">
+          {suppliers.slice(0, 2).map((s) => (
+            <span key={s} className="rounded border border-border px-2 py-1 font-mono text-[11px] uppercase tracking-wide text-fg-subtle">
+              {s}
             </span>
           ))}
         </div>
-        <ShoppingCart className="h-3 w-3 shrink-0 text-brand/50" />
+        <ShoppingCart className="h-5 w-5 shrink-0 text-brand/50" />
       </div>
     </motion.div>
   );
@@ -1232,135 +413,223 @@ function ProductCard({
 // Card 1 — Product Catalog
 // ─────────────────────────────────────────────
 
-export function CatalogPreview() {
-  const ref = useRef<HTMLDivElement>(null);
+export function CatalogPreview({ preview = false }: { preview?: boolean }) {
+  const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-60px" });
-  const [searchIdx, setSearchIdx] = useState(0);
-  const [catIdx, setCatIdx] = useState(0);
 
+  // ── Preview (monitor) mode: cycling animation only ──
+  const [searchIdx, setSearchIdx] = useState(0);
+  const [catIdx,    setCatIdx]    = useState(0);
   useEffect(() => {
     if (!inView) return;
-    const s = setInterval(
-      () => setSearchIdx((i) => (i + 1) % SEARCH_TERMS.length),
-      3600,
-    );
-    const c = setInterval(
-      () => setCatIdx((i) => (i + 1) % CATALOG_DATA.length),
-      2800,
-    );
-    return () => {
-      clearInterval(s);
-      clearInterval(c);
-    };
+    const s = setInterval(() => setSearchIdx(i => (i + 1) % SEARCH_TERMS.length), 3600);
+    return () => clearInterval(s);
   }, [inView]);
+  useEffect(() => {
+    if (!inView || !preview) return;
+    const c = setInterval(() => setCatIdx(i => (i + 1) % CATALOG_CATEGORIES.length), 2800);
+    return () => clearInterval(c);
+  }, [inView, preview]);
 
-  const currentCat = CATALOG_DATA[catIdx];
+  // ── Auto-demo filter state (drives real filtering) ──
+  const { query, setQuery, debouncedQ, selectedCat, setSelectedCat, sortBy, setSortBy, highlightOn, filtered } =
+    useCatalogFilter(CATALOG_ITEMS);
+
+  useAutoDemo(inView, setQuery, setSelectedCat, setSortBy);
+
+  const currentSort = SORT_OPTIONS.find(o => o.value === sortBy)!;
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
       <LiveTicker />
 
-      {/* Search bar */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-2.5">
-        <Search className="h-4 w-4 shrink-0 text-brand" />
-        <span className="min-w-0 flex-1 text-[12px] text-fg-subtle">
-          {inView && <TypedSearch term={SEARCH_TERMS[searchIdx]} />}
+      {/* ── Search bar ── */}
+      <div className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-3.5">
+        <Search className="h-5 w-5 shrink-0 text-brand" />
+
+        {/* Both modes: show typed query with blinking cursor */}
+        <span className="min-w-0 flex-1 text-[15px] text-fg">
+          {query ? (
+            <>
+              <span>{query}</span>
+              <motion.span
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse" }}
+                className="text-brand"
+              >|</motion.span>
+            </>
+          ) : (
+            <span className="text-fg-subtle">Search data items…</span>
+          )}
         </span>
+
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-fg-muted">
-            Filter ▾
+          <span className="rounded-full border border-border px-3 py-1 text-[12px] text-fg-muted">
+            <SlidersHorizontal className="inline h-3.5 w-3.5 mr-1" />Filter
           </span>
-          <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-fg-muted">
-            CSV
-          </span>
-          <span className="rounded-full bg-cyan-500/75 px-2.5 py-0.5 text-[8px] font-semibold text-black">
+          <span className="rounded-full border border-border px-3 py-1 text-[12px] text-fg-muted">CSV</span>
+          <span className={cn(
+            "rounded-full px-3.5 py-1 text-[12px] font-semibold",
+            highlightOn ? "bg-cyan-500/75 text-white" : "border border-border text-fg-muted"
+          )}>
             Highlighting
           </span>
         </div>
       </div>
 
-      {/* Category pills */}
-      <div className="flex shrink-0 items-center gap-1.5 overflow-hidden border-b border-white/[0.05] px-4 py-2">
-        <span className="shrink-0 font-mono text-[7px] uppercase tracking-widest text-fg-subtle">
-          CATEGORIES:
-        </span>
-        <div className="flex gap-1.5 overflow-hidden">
-          {CATALOG_DATA.map((cat, i) => (
-            <motion.span
-              key={cat.name}
-              animate={{
-                backgroundColor:
-                  catIdx === i
-                    ? "rgba(34,211,238,0.14)"
-                    : "rgba(255,255,255,0.04)",
-                color:
-                  catIdx === i
-                    ? "rgba(34,211,238,0.9)"
-                    : "rgba(255,255,255,0.32)",
-                borderColor:
-                  catIdx === i
-                    ? "rgba(34,211,238,0.28)"
-                    : "rgba(255,255,255,0.07)",
-              }}
-              transition={{ duration: 0.32 }}
-              className="shrink-0 cursor-default rounded-full border px-2.5 py-0.5 text-[9px] font-medium"
-            >
-              {cat.name}
-            </motion.span>
-          ))}
-        </div>
-      </div>
-
-      {/* Section header */}
-      <div className="flex shrink-0 items-center justify-between px-4 py-2.5">
-        <div className="flex items-center gap-2.5">
+      {preview ? (
+        /* Monitor: 3×3 grid — live filtered */
+        <div className="min-h-0 flex-1 overflow-hidden px-4 pb-3 pt-2">
           <AnimatePresence mode="wait">
-            <motion.span
-              key={`title-${catIdx}`}
-              initial={{ opacity: 0, y: -5 }}
+            <motion.div
+              key={`${debouncedQ}-${selectedCat}-${sortBy}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="grid h-full grid-cols-3 grid-rows-3 gap-3"
+            >
+              {(filtered.length > 0 ? filtered : CATALOG_PREVIEW_ITEMS).slice(0, 9).map((item, i) => (
+                <ProductCard
+                  key={item.id}
+                  {...item}
+                  delay={0.01 + i * 0.03}
+                  query={debouncedQ}
+                  highlightOn={highlightOn}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ) : (
+        <>
+          {/* ── Category pills ── */}
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border px-5 py-3">
+            <span className="shrink-0 font-mono text-[11px] uppercase tracking-widest text-fg-subtle">
+              CATEGORIES:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <motion.span
+                animate={{
+                  backgroundColor: !selectedCat ? "rgba(37,99,235,0.10)" : "transparent",
+                  color:           !selectedCat ? "rgba(37,99,235,1)"    : "rgba(15,23,42,0.35)",
+                  borderColor:     !selectedCat ? "rgba(37,99,235,0.30)" : "rgba(15,23,42,0.12)",
+                }}
+                transition={{ duration: 0.32 }}
+                className="shrink-0 cursor-default rounded-full border px-3 py-1 text-[12px] font-medium"
+              >
+                All Categories
+              </motion.span>
+
+              {CATALOG_CATEGORIES.map((cat, i) => (
+                <span key={cat}>
+                  {i === 7 && <span className="block w-full" />}
+                  <motion.span
+                    animate={{
+                      backgroundColor: selectedCat === cat ? "rgba(37,99,235,0.10)" : "transparent",
+                      color:           selectedCat === cat ? "rgba(37,99,235,1)"    : "rgba(15,23,42,0.35)",
+                      borderColor:     selectedCat === cat ? "rgba(37,99,235,0.30)" : "rgba(15,23,42,0.12)",
+                    }}
+                    transition={{ duration: 0.32 }}
+                    className="shrink-0 cursor-default rounded-full border px-3 py-1 text-[12px] font-medium"
+                  >
+                    {cat}
+                  </motion.span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Active filter chips ── */}
+          <AnimatePresence>
+            {(debouncedQ || selectedCat) && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex shrink-0 items-center gap-2 overflow-hidden px-5 py-2"
+              >
+                <span className="text-[11px] text-fg-subtle">● Active:</span>
+                {debouncedQ && (
+                  <span className="flex items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-[11px] font-semibold text-brand">
+                    <Search className="h-3 w-3" />„{debouncedQ}"
+                  </span>
+                )}
+                {selectedCat && (
+                  <span className="flex items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-[11px] font-semibold text-brand">
+                    {selectedCat}
+                  </span>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Result header + sort indicator ── */}
+          <div className="flex shrink-0 items-center justify-between px-5 py-3">
+            <div className="flex items-center gap-3">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={selectedCat ?? "all"}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[20px] font-extrabold text-brand"
+                >
+                  {selectedCat ?? "All Categories"}
+                </motion.span>
+              </AnimatePresence>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={filtered.length}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  className="rounded-full bg-brand-subtle px-3 py-1 text-[12px] font-semibold text-brand"
+                >
+                  {filtered.length} items
+                </motion.span>
+              </AnimatePresence>
+            </div>
+            {/* Sort indicator (read-only, driven by demo) */}
+            <motion.div
+              key={sortBy}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
-              transition={{ duration: 0.2 }}
-              className="text-[15px] font-extrabold text-brand"
+              className="flex items-center gap-1.5 rounded-full border border-border bg-base px-3 py-1.5 text-[12px] font-medium text-fg-muted"
             >
-              {currentCat.name}
-            </motion.span>
-          </AnimatePresence>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={`count-${catIdx}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-full bg-brand-muted px-2.5 py-0.5 text-[9px] font-semibold text-brand"
-            >
-              {currentCat.count} items
-            </motion.span>
-          </AnimatePresence>
-        </div>
-        <span className="flex items-center gap-1.5 text-[9px] text-fg-subtle">
-          <ArrowUpDown className="h-3.5 w-3.5 text-brand/50" /> Popularity
-        </span>
-      </div>
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {currentSort.label}
+            </motion.div>
+          </div>
 
-      {/* Product grid — 4×2 = 8 cards */}
-      <div className="min-h-0 flex-1 overflow-hidden px-4 pb-3">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`grid-${catIdx}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="grid h-full grid-cols-4 grid-rows-2 gap-2.5"
-          >
-            {currentCat.products.map((p, i) => (
-              <ProductCard key={p.title} {...p} delay={0.03 + i * 0.05} />
-            ))}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+          {/* ── Results grid ── */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${debouncedQ}-${selectedCat}-${sortBy}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="grid grid-cols-3 gap-3"
+              >
+                {filtered.map((item, i) => (
+                  <div key={item.id} className="min-h-[240px]">
+                    <ProductCard
+                      {...item}
+                      delay={Math.min(i * 0.025, 0.2)}
+                      query={debouncedQ}
+                      highlightOn={highlightOn}
+                    />
+                  </div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1488,71 +757,68 @@ function OEMOrbital({ active }: { active: boolean }) {
 }
 
 function DetailPreview() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-40px" });
+
+  const SPECS = [
+    { label: "Contract", value: "B2B",       accent: "text-blue-500"  },
+    { label: "OEMs",     value: "6+",         accent: "text-brand"     },
+    { label: "API",      value: "v1",         accent: "text-fg"        },
+    { label: "Status",   value: "AVAILABLE",  accent: "text-green-500" },
+  ];
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          {/* Icon is brand blue — CARUSO style */}
-          <span className="rounded-xl bg-brand-subtle p-2.5">
-            <Battery className="h-5 w-5 text-brand" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-bold leading-tight text-fg">
-              Battery Care Mode
-            </p>
-            <div className="mt-1 flex items-center gap-1">
-              <span className="rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">
-                ● AVAILABLE
-              </span>
-              <span className="rounded-full bg-blue-500/15 px-1.5 py-px text-[7px] font-semibold text-blue-300">
-                B2B
-              </span>
+
+      {/* Selected item hero */}
+      <div className="shrink-0 border-b border-border bg-gradient-to-br from-brand-subtle/60 to-surface px-5 py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm"
+              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", boxShadow: "0 4px 14px rgba(37,99,235,0.30)" }}
+            >
+              <Battery className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-[14px] font-extrabold leading-tight text-fg">Battery Care Mode</p>
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-600">● AVAILABLE</span>
+                <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-600">B2B</span>
+                <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold text-orange-500">B2C</span>
+              </div>
             </div>
           </div>
           <motion.button
-            whileHover={{
-              scale: 1.04,
-              boxShadow: "0 0 20px rgba(34,211,238,0.4)",
-            }}
-            className="shrink-0 rounded-lg bg-cyan-500/80 px-2.5 py-1.5 text-[9px] font-bold text-black"
+            whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+            whileTap={{ scale: 0.97 }}
+            className="shrink-0 rounded-xl bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-sm"
+            style={{ boxShadow: "0 4px 14px rgba(37,99,235,0.30)" }}
           >
             ▶ Request
           </motion.button>
         </div>
+
+        {/* API slug */}
+        <div className="mt-3 flex items-center justify-between rounded-xl border border-brand/15 bg-base px-3 py-2">
+          <code className="font-mono text-[11px] text-brand/80">caruso.api / battery-care-mode</code>
+          <Copy className="h-3.5 w-3.5 text-fg-subtle hover:text-brand cursor-pointer" />
+        </div>
       </div>
 
+      {/* OEM Orbital */}
       <div className="min-h-0 flex-1 px-3 py-1">
         <OEMOrbital active={inView} />
       </div>
 
-      <div className="shrink-0 grid grid-cols-4 divide-x divide-white/[0.05] border-t border-white/[0.05]">
-        {[
-          { label: "Contract", value: "B2B" },
-          { label: "OEMs", value: "1" },
-          { label: "API", value: "v1" },
-          { label: "Status", value: "AVAILABLE" },
-        ].map(({ label, value }) => (
-          <div key={label} className="px-3 py-2 text-center">
-            <p className="font-mono text-[6.5px] uppercase tracking-widest text-fg-subtle">
-              {label}
-            </p>
-            <p className="mt-0.5 truncate text-[8px] font-bold text-fg-muted">
-              {value}
-            </p>
+      {/* Specs bar */}
+      <div className="shrink-0 grid grid-cols-4 divide-x divide-border border-t border-border">
+        {SPECS.map(({ label, value, accent }) => (
+          <div key={label} className="px-2 py-3 text-center">
+            <p className="font-mono text-[9px] uppercase tracking-widest text-fg-subtle">{label}</p>
+            <p className={cn("mt-0.5 truncate text-[12px] font-extrabold", accent)}>{value}</p>
           </div>
         ))}
-      </div>
-
-      <div className="shrink-0 border-t border-white/[0.05] px-3 py-2.5">
-        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
-          <code className="font-mono text-[9px] text-cyan-300/65">
-            batterycaremode
-          </code>
-          <Copy className="h-3 w-3 text-fg-subtle" />
-        </div>
       </div>
     </div>
   );
@@ -1563,37 +829,32 @@ function DetailPreview() {
 // ─────────────────────────────────────────────
 
 function CartPreview() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-40px" });
-  const [items, setItems] = useState(CART_ITEMS);
-  const [tab, setTab] = useState<"requests" | "orders">("requests");
+  const [items,   setItems]   = useState(CART_ITEMS);
+  const [tab,     setTab]     = useState<"requests" | "orders">("requests");
   const [ordered, setOrdered] = useState(false);
 
   useEffect(() => {
     if (!inView) return;
-    const t1 = setTimeout(() => setItems((prev) => prev.slice(0, -1)), 4200);
+    const t1 = setTimeout(() => setItems(p => p.slice(0, -1)), 4200);
     const t2 = setTimeout(() => setItems(CART_ITEMS), 6500);
-    const t3 = setTimeout(() => {
-      setOrdered(true);
-      setItems([]);
-    }, 10500);
-    const t4 = setTimeout(() => {
-      setOrdered(false);
-      setTab("orders");
-    }, 13000);
-    const t5 = setTimeout(() => {
-      setTab("requests");
-      setItems(CART_ITEMS);
-    }, 17000);
+    const t3 = setTimeout(() => { setOrdered(true); setItems([]); }, 10500);
+    const t4 = setTimeout(() => { setOrdered(false); setTab("orders"); }, 13000);
+    const t5 = setTimeout(() => { setTab("requests"); setItems(CART_ITEMS); }, 17000);
     return () => [t1, t2, t3, t4, t5].forEach(clearTimeout);
   }, [inView]);
 
   return (
     <div ref={ref} className="flex h-full flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+
+      {/* Cart header */}
+      <div className="flex shrink-0 items-center justify-between border-b border-border bg-gradient-to-r from-brand-subtle/40 to-surface px-5 py-3.5">
         <div className="flex items-center gap-2.5">
-          <ShoppingCart className="h-4.5 w-4.5 text-brand" style={{ width: "1.125rem", height: "1.125rem" }} />
-          <span className="text-[13px] font-bold text-fg">Shopping Bag</span>
+          <div className="rounded-xl bg-brand-subtle p-2">
+            <ShoppingCart className="h-4.5 w-4.5 text-brand" style={{ width: "1.125rem", height: "1.125rem" }} />
+          </div>
+          <span className="text-[15px] font-extrabold text-fg">Shopping Bag</span>
           <AnimatePresence mode="wait">
             <motion.span
               key={items.length}
@@ -1601,25 +862,24 @@ function CartPreview() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.6, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 font-mono text-[8px] font-bold text-black"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-brand font-mono text-[10px] font-bold text-white"
             >
               {items.length}
             </motion.span>
           </AnimatePresence>
         </div>
-        <X className="h-3.5 w-3.5 text-fg-subtle" />
+        <X className="h-4 w-4 cursor-pointer text-fg-subtle hover:text-fg" />
       </div>
 
-      <div className="flex shrink-0 border-b border-white/[0.06]">
+      {/* Tabs */}
+      <div className="flex shrink-0 border-b border-border">
         {(["requests", "orders"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "flex-1 py-2 text-[9px] font-semibold transition-colors",
-              tab === t
-                ? "border-b-2 border-cyan-400 text-cyan-300"
-                : "text-fg-subtle hover:text-fg-muted",
+              "flex-1 py-2.5 text-[12px] font-semibold transition-colors",
+              tab === t ? "border-b-2 border-brand text-brand" : "text-fg-subtle hover:text-fg-muted",
             )}
           >
             {t === "requests" ? "My Requests" : "Orders"}
@@ -1630,37 +890,28 @@ function CartPreview() {
       <div className="min-h-0 flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           {tab === "requests" && (
-            <motion.div
-              key="requests"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex h-full flex-col"
-            >
+            <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex h-full flex-col">
               {ordered ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20"
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/15"
+                    style={{ boxShadow: "0 0 0 1px rgba(34,197,94,0.25), 0 8px 24px rgba(34,197,94,0.15)" }}
                   >
-                    <Check className="h-5 w-5 text-green-400" />
+                    <Check className="h-7 w-7 text-green-500" />
                   </motion.div>
-                  <p className="text-[11px] font-semibold text-fg-muted">
-                    Order placed!
-                  </p>
-                  <p className="text-[9px] text-fg-subtle">
-                    Saved to order history
-                  </p>
+                  <p className="text-[15px] font-bold text-fg">Order placed!</p>
+                  <p className="text-[12px] text-fg-muted">Saved to order history</p>
                 </div>
               ) : items.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <p className="text-[11px] text-fg-subtle">Your bag is empty</p>
+                  <p className="text-[13px] text-fg-subtle">Your bag is empty</p>
                 </div>
               ) : (
                 <>
-                  <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
+                  <div className="min-h-0 flex-1 space-y-2.5 overflow-hidden px-4 py-4">
                     <AnimatePresence>
                       {items.map((item) => (
                         <motion.div
@@ -1668,46 +919,30 @@ function CartPreview() {
                           layout
                           initial={{ opacity: 0, x: 24 }}
                           animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -24 }}
+                          exit={{ opacity: 0, x: -24, height: 0, marginBottom: 0 }}
                           transition={{ duration: 0.28 }}
-                          className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2"
+                          className="flex items-center justify-between rounded-2xl border border-border bg-base px-4 py-3 shadow-sm"
                         >
                           <div>
-                            <p className="text-[9px] font-semibold text-fg">
-                              {item.title}
-                            </p>
-                            <p className="text-[8px] text-fg-subtle">
-                              {item.price}
-                            </p>
+                            <p className="text-[13px] font-semibold text-fg">{item.title}</p>
+                            <p className="mt-0.5 text-[11px] text-fg-subtle">{item.price}</p>
                           </div>
-                          <X className="h-3 w-3 text-fg-subtle" />
+                          <X className="h-3.5 w-3.5 cursor-pointer text-fg-subtle hover:text-fg" />
                         </motion.div>
                       ))}
                     </AnimatePresence>
                   </div>
-                  <div className="shrink-0 border-t border-white/[0.05] px-3 pb-3 pt-2.5">
-                    <div className="mb-2.5 flex items-center justify-between">
-                      <span className="text-[9px] text-fg-subtle">Total</span>
-                      <span className="text-[12px] font-extrabold text-fg">
-                        {items.length}.00 EUR
-                      </span>
+
+                  <div className="shrink-0 border-t border-border px-4 pb-4 pt-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-[12px] text-fg-muted">Total</span>
+                      <span className="text-[18px] font-extrabold text-fg">{items.length}.00 EUR</span>
                     </div>
                     <motion.button
-                      whileHover={{
-                        scale: 1.02,
-                        boxShadow: "0 0 24px rgba(34,211,238,0.45)",
-                      }}
-                      animate={{
-                        boxShadow: [
-                          "0 0 0px rgba(34,211,238,0)",
-                          "0 0 22px rgba(34,211,238,0.35)",
-                          "0 0 0px rgba(34,211,238,0)",
-                        ],
-                      }}
-                      transition={{
-                        boxShadow: { duration: 2.2, repeat: Infinity },
-                      }}
-                      className="w-full rounded-xl bg-cyan-500 py-2.5 text-[10px] font-bold text-black"
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(37,99,235,0.45)" }}
+                      animate={{ boxShadow: ["0 4px 14px rgba(37,99,235,0.20)", "0 4px 28px rgba(37,99,235,0.40)", "0 4px 14px rgba(37,99,235,0.20)"] }}
+                      transition={{ boxShadow: { duration: 2.2, repeat: Infinity } }}
+                      className="w-full rounded-2xl bg-brand py-3 text-[13px] font-bold text-white"
                     >
                       Order All
                     </motion.button>
@@ -1718,33 +953,21 @@ function CartPreview() {
           )}
 
           {tab === "orders" && (
-            <motion.div
-              key="orders"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-3"
-            >
-              <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+            <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-4">
+              <div className="rounded-2xl border border-border bg-base p-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-fg">
-                    Order #001
-                  </span>
-                  <span className="text-[9px] font-semibold text-cyan-300">
-                    3.00 EUR
-                  </span>
+                  <span className="text-[14px] font-bold text-fg">Order #001</span>
+                  <span className="text-[14px] font-extrabold text-brand">3.00 EUR</span>
                 </div>
-                <div className="mt-2 space-y-1">
+                <div className="mt-3 space-y-1.5">
                   {CART_ITEMS.map((item) => (
-                    <p key={item.id} className="text-[8px] text-fg-muted">
-                      · {item.title}
-                    </p>
+                    <p key={item.id} className="text-[12px] text-fg-muted">· {item.title}</p>
                   ))}
                 </div>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <Clock className="h-2.5 w-2.5 text-fg-subtle" />
-                  <span className="text-[7px] text-fg-subtle">just now</span>
-                  <span className="ml-auto rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">
+                <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+                  <Clock className="h-3.5 w-3.5 text-fg-subtle" />
+                  <span className="text-[11px] text-fg-subtle">just now</span>
+                  <span className="ml-auto rounded-full bg-green-500/15 px-2.5 py-0.5 text-[10px] font-bold text-green-600">
                     COMPLETED
                   </span>
                 </div>
@@ -1779,7 +1002,7 @@ export function FeatureBentoGrid() {
   return (
     <section id="catalog" className="relative bg-base px-8 py-28">
       <VehicleBackground iconOpacity={0.15} laneOpacity={0.15} laneSpeed={34} floatAmplitude={13} />
-      <div className="relative z-[1] mx-auto max-w-7xl">
+      <div className="relative z-[1] mx-auto max-w-[1560px]">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1802,35 +1025,71 @@ export function FeatureBentoGrid() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.12 }}
           variants={STAGGER}
-          className="grid h-[820px] grid-cols-1 gap-6 lg:grid-cols-4 lg:grid-rows-2"
+          className="grid h-[1260px] grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:grid-rows-2"
         >
           {/* ── Product Catalog (col-span-3, row-span-2) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
+            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-3 lg:row-span-2"
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
+            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-2"
           >
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/8 blur-[80px]" />
-            <div className="shrink-0 px-5 pt-4">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-cyan-300/55">
-                Product Catalog
-              </span>
-              <h3 className="mt-0.5 text-xl font-extrabold tracking-tight">
-                Discover &amp; Filter
-              </h3>
-              <p className="text-[11px] text-fg-subtle">
-                Fuzzy full-text search · 10 categories · OEM logos · live ticker
-                · HTMX filters
-              </p>
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · data-catalog</span>
             </div>
+
+            {/* Ambient glows */}
+            <div className="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-cyan-400/8 blur-[80px]" />
+            <div className="pointer-events-none absolute -left-16 top-8 h-48 w-48 rounded-full bg-brand/5 blur-[60px]" />
+
+            {/* Header */}
             <div className="shrink-0 px-6 pt-5">
-              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Product Catalog</span>
-              <h3 className="mt-0.5 text-xl font-extrabold tracking-tight text-fg">Discover &amp; Filter</h3>
-              <p className="text-[11px] text-fg-muted">Fuzzy full-text search · 10 categories · OEM logos · live ticker · HTMX filters</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                    Data Catalog
+                  </span>
+                  <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-fg">
+                    Discover &amp;{" "}
+                    <span
+                      style={{
+                        background: "linear-gradient(to right, #2563EB, #06B6D4)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      Filter
+                    </span>
+                  </h3>
+                  <p className="mt-1 text-[12px] text-fg-muted">
+                    Fuzzy full-text search · 433+ Data Items · B2B API
+                  </p>
+                </div>
+                {/* Stat chips */}
+                <div className="flex shrink-0 flex-col gap-2 pt-1">
+                  {[
+                    { value: "433+", label: "Data Items" },
+                    { value: "10",  label: "Kategorien" },
+                    { value: "8+",  label: "OEM-Partner" },
+                  ].map(({ value, label }) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2 rounded-xl border border-border bg-base px-3 py-1.5 shadow-sm"
+                    >
+                      <span className="text-[15px] font-extrabold text-brand">{value}</span>
+                      <span className="text-[10px] text-fg-muted">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="mx-6 mt-3 h-px shrink-0 bg-border" />
+            <div className="mx-6 mt-4 h-px shrink-0 bg-gradient-to-r from-brand/20 via-border to-transparent" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <CatalogPreview />
             </div>
@@ -1839,24 +1098,20 @@ export function FeatureBentoGrid() {
           {/* ── Item Detail / OEM Orbital (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
+            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            <div className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
-            <div className="shrink-0 px-5 pt-5">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-blue-300/55">
-                Item Detail
-              </span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight">
-                OEM Deep-Dive
-              </h3>
-              <p className="text-[10px] text-fg-subtle">
-                Orbital hub · Specs card · JSON Schema · Attributes
-              </p>
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · item-detail</span>
             </div>
-            <div className="shrink-0 px-5 pt-5">
+            <div className="pointer-events-none absolute -left-12 top-8 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
+            <div className="shrink-0 px-5 pt-4">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Item Detail</span>
               <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">OEM Deep-Dive</h3>
               <p className="text-[11px] text-fg-muted">Orbital hub · Specs card · JSON Schema · Attributes</p>
@@ -1870,24 +1125,20 @@ export function FeatureBentoGrid() {
           {/* ── Shopping Cart (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -2, boxShadow: "0 0 0 1.5px rgba(37,99,235,0.40), 0 8px 32px rgba(37,99,235,0.18), 0 32px 80px rgba(37,99,235,0.10)" }}
+            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
+            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
-            <div className="shrink-0 px-5 pt-5">
-              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-purple-300/55">
-                Request System
-              </span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight">
-                Shopping Cart
-              </h3>
-              <p className="text-[10px] text-fg-subtle">
-                localStorage persistence · UUID items · order history
-              </p>
+            {/* macOS title bar */}
+            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · shopping-cart</span>
             </div>
-            <div className="shrink-0 px-5 pt-5">
+            <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
+            <div className="shrink-0 px-5 pt-4">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Request System</span>
               <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">Shopping Cart</h3>
               <p className="text-[11px] text-fg-muted">localStorage persistence · UUID items · order history</p>

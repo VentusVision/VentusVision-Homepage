@@ -106,9 +106,9 @@ export function HeroTripleDash() {
             transition={{ duration: 0.26, ease: EASE_PREMIUM }}
             className="h-full"
           >
-            {tabIdx === 0 && <ScaledPreview scale={0.88}><CatalogPreview /></ScaledPreview>}
-            {tabIdx === 1 && <ScaledPreview scale={0.92}><DataExplorerPreview /></ScaledPreview>}
-            {tabIdx === 2 && <ScaledPreview scale={0.88}><MapPreview /></ScaledPreview>}
+            {tabIdx === 0 && <ScaledPreview scale={1.0}><CatalogPreview preview /></ScaledPreview>}
+            {tabIdx === 1 && <ScaledPreview scale={1.0}><DataExplorerPreview /></ScaledPreview>}
+            {tabIdx === 2 && <ScaledPreview scale={1.0}><MapPreview /></ScaledPreview>}
           </motion.div>
         </AnimatePresence>
       </div>

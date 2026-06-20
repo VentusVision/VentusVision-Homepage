@@ -5,8 +5,8 @@ import { EASE_PREMIUM } from "../../lib/motion";
 
 // Pentagon layout — each member at 72° apart, starting from top
 const TEAM = [
-  { name: "Dennis",  role: "Sprint Planner",   from: "#2563EB", to: "#06B6D4", angle: -90 },
-  { name: "Tim",     role: "Scrum Organizer",  from: "#7C3AED", to: "#A855F7", angle: -18 },
+  { name: "Dennis",  role: "Sprint Planner · Developer",  from: "#2563EB", to: "#06B6D4", angle: -90 },
+  { name: "Tim",     role: "Scrum Organizer · Developer", from: "#7C3AED", to: "#A855F7", angle: -18 },
   { name: "Janick",  role: "Developer",        from: "#0891B2", to: "#22D3EE", angle:  54 },
   { name: "Obai",    role: "Developer",        from: "#1D4ED8", to: "#818CF8", angle: 126 },
   { name: "Vincent", role: "Developer",        from: "#0369A1", to: "#38BDF8", angle: 198 },
@@ -130,7 +130,7 @@ function Constellation({ inView }: { inView: boolean }) {
           <motion.div
             key={m.name}
             className="absolute flex flex-col items-center"
-            style={{ left: x - 44, top: y - 44, width: 88 }}
+            style={{ left: x - 56, top: y - 44, width: 112 }}
             initial={{ scale: 0, opacity: 0 }}
             animate={inView ? { scale: 1, opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.4 + i * 0.1, ease: EASE_PREMIUM }}
@@ -149,8 +149,27 @@ function Constellation({ inView }: { inView: boolean }) {
             </motion.div>
 
             {/* Name + role */}
-            <p className="mt-2 text-[12px] font-bold leading-tight text-fg">{m.name}</p>
-            <p className="mt-0.5 text-center text-[10px] leading-snug text-fg-muted">{m.role}</p>
+            <p
+              className="mt-2.5 text-[13px] font-extrabold tracking-tight"
+              style={{
+                background: `linear-gradient(135deg, ${m.from}, ${m.to})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {m.name}
+            </p>
+            <div className="mt-1 flex flex-wrap justify-center gap-1">
+              {m.role.split(" · ").map(r => (
+                <span
+                  key={r}
+                  className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+                  style={{ background: `linear-gradient(135deg, ${m.from}cc, ${m.to}cc)` }}
+                >
+                  {r}
+                </span>
+              ))}
+            </div>
           </motion.div>
         );
       })}
