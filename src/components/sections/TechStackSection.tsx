@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import {
-  Server, Database, Zap, Code2, Globe, GitBranch,
+  Server, Database, Code2, Globe, GitBranch,
   PenTool, Upload, FileJson, Layers, RefreshCw, Layout,
 } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";

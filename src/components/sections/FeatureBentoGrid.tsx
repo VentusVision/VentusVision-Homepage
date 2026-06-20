@@ -90,7 +90,7 @@ function useCatalogFilter(items: DataItem[]) {
     switch (sortBy) {
       case "az":     result.sort((a, b) => a.title.localeCompare(b.title)); break;
       case "za":     result.sort((a, b) => b.title.localeCompare(a.title)); break;
-      case "status": result.sort((a, b) => (a.status === "AVAILABLE" ? -1 : 1)); break;
+      case "status": result.sort((a,) => (a.status === "AVAILABLE" ? -1 : 1)); break;
     }
 
     return result;
