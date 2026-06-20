@@ -87,10 +87,6 @@ interface Category {
   count: number;
   products: Product[];
 }
-
-<<<<<<< HEAD
-const C = ["#60a5fa","#4ade80","#fb923c","#a855f7","#f43f5e","#facc15","#22d3ee","#ec4899"] as const;
-=======
 // 8 rotating colors per card slot
 const C = [
   "#60a5fa",
@@ -102,23 +98,12 @@ const C = [
   "#22d3ee",
   "#ec4899",
 ] as const;
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
 
 const CATALOG_DATA: Category[] = [
   {
     name: "Charging & EV",
     count: 34,
     products: [
-<<<<<<< HEAD
-      { title: "AC Charging Session Data",        status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW"],   Icon: Zap,            color: C[0], description: "Real-time and historical data on AC charging events including start/end time, energy transferred, and charging point ID." },
-      { title: "DC Fast Charge Events",           status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Tesla","Porsche","Hyundai"],   Icon: BatteryCharging, color: C[1], description: "Data on DC fast charging sessions including peak power, thermal throttling events, and session duration." },
-      { title: "State of Charge (SoC)",           status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","VW","Tesla","Renault"], Icon: Battery,        color: C[2], description: "Current battery charge level as a percentage, sampled at configurable intervals." },
-      { title: "Charging Cable Connection Status", status: "AVAILABLE", types: ["B2C"],      oems: ["BMW","VW","Renault","Stellantis"],   Icon: Plug,           color: C[3], description: "Boolean status indicating whether a charging cable is currently connected and locked." },
-      { title: "Est. Charging Completion Time",   status: "AVAILABLE", types: ["B2B","B2C"], oems: ["Tesla","BMW","Audi","Porsche"],      Icon: Clock,          color: C[4], description: "Predicted time until battery is fully charged based on current SoC, charging rate, and battery temperature." },
-      { title: "Charging Cost per Session",       status: "DRAFT",     types: ["B2C"],       oems: ["BMW","Mercedes-Benz","Tesla"],       Icon: CreditCard,     color: C[5], description: "Cost data per charging session including tariff type, currency, and total amount billed." },
-      { title: "Wallbox Communication Data",      status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","VW","Renault"],         Icon: Home,           color: C[6], description: "Data exchanged between the vehicle and home charging station (OCPP protocol), including schedules and load management signals." },
-      { title: "Preconditioning Activation",      status: "AVAILABLE", types: ["B2C"],       oems: ["BMW","Tesla","Mercedes-Benz"],       Icon: Thermometer,    color: C[7], description: "Records of cabin and battery preconditioning events triggered remotely or by departure timer." },
-=======
       {
         title: "AC Charging Session Data",
         status: "AVAILABLE",
@@ -199,7 +184,6 @@ const CATALOG_DATA: Category[] = [
         description:
           "Records of cabin and battery preconditioning events triggered remotely or by departure timer.",
       },
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
     ],
   },
   {
@@ -487,16 +471,6 @@ const CATALOG_DATA: Category[] = [
     name: "Maintenance & Diag.",
     count: 88,
     products: [
-<<<<<<< HEAD
-      { title: "OBD-II Diagnostic Codes",         status: "AVAILABLE", types: ["B2B"],      oems: ["BMW","Audi","Mercedes-Benz","VW","Ford","Toyota","Stellantis","Renault"], Icon: Wrench, color: C[0], description: "Active and pending fault codes (DTCs) from all ECUs with code description and severity level." },
-      { title: "Service Interval Status",         status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW","Volvo","Toyota"], Icon: Calendar, color: C[1], description: "Remaining distance and days until next scheduled service (oil, brake fluid, inspection)." },
-      { title: "Brake Pad Wear Level",            status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Porsche","VW"],       Icon: Shield,   color: C[2], description: "Current brake pad thickness as a percentage of original depth, per axle." },
-      { title: "Tyre Pressure Monitoring",        status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW","Tesla","Ford","Renault"], Icon: Activity, color: C[3], description: "Real-time tyre pressure readings for all four wheels via TPMS sensors, with temperature." },
-      { title: "Oil Life Remaining",              status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","Ford","Toyota","Stellantis"], Icon: Droplets, color: C[4], description: "Calculated engine oil life based on driving patterns, temperature, and mileage." },
-      { title: "ECU Software Version",            status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","VW"],         Icon: Cpu,      color: C[5], description: "Current software version identifiers for all major electronic control units in the vehicle." },
-      { title: "Battery 12V Status",              status: "AVAILABLE", types: ["B2B","B2C"], oems: ["BMW","Audi","Mercedes-Benz","VW","Ford","Renault","Toyota"], Icon: Battery, color: C[6], description: "Voltage and charge state of the 12V auxiliary battery used for electronics and starting." },
-      { title: "Wiper Blade Usage Events",        status: "DRAFT",     types: ["B2B"],       oems: ["BMW","VW","Renault","Stellantis","Ford"],           Icon: Activity, color: C[7], description: "Count and frequency of windshield wiper activations as proxy for weather and road conditions." },
-=======
       {
         title: "OBD-II Diagnostic Trouble Codes",
         status: "AVAILABLE",
@@ -602,23 +576,12 @@ const CATALOG_DATA: Category[] = [
         description:
           "Count and frequency of windshield wiper activations as proxy for weather and road conditions.",
       },
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
     ],
   },
   {
     name: "Safety & Incidents",
     count: 51,
     products: [
-<<<<<<< HEAD
-      { title: "Auto Emergency Braking",          status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Tesla","Hyundai"], Icon: AlertTriangle, color: C[0], description: "Records of AEB system activations including trigger speed, deceleration force, and GPS coordinates." },
-      { title: "Airbag Deployment Events",        status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","VW","Toyota","Ford"], Icon: Shield,        color: C[1], description: "Log of airbag and seatbelt pretensioner deployment with timestamp and impact direction." },
-      { title: "Lane Departure Warning",          status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","Volvo","Ford"], Icon: AlertTriangle, color: C[2], description: "Instances where the vehicle crossed lane markings without indicator activation." },
-      { title: "Collision Detection Data",        status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Tesla"],       Icon: AlertTriangle, color: C[3], description: "Accelerometer data around collision events with G-force values per axis and direction." },
-      { title: "Driver Attention Alerts",         status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Volvo","Toyota"],     Icon: Eye,           color: C[4], description: "Activations of the driver drowsiness and attention monitoring system with severity level." },
-      { title: "Forward Collision Warnings",      status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Tesla","Hyundai","Ford"], Icon: AlertTriangle, color: C[5], description: "Pre-collision alert events with time-to-collision value, relative speed, and GPS position." },
-      { title: "Blind Spot Detection",            status: "DRAFT",     types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","Ford","Volvo","Stellantis"], Icon: Eye,     color: C[6], description: "Count and timing of blind spot warning activations per trip segment." },
-      { title: "Post-Crash Emergency Call",       status: "AVAILABLE", types: ["B2B"],       oems: ["BMW","Audi","Mercedes-Benz","VW","Renault","Stellantis"], Icon: Phone,  color: C[7], description: "eCall data transmitted after a crash including GPS coordinates, severity, and occupant count." },
-=======
       {
         title: "Auto Emergency Braking Events",
         status: "AVAILABLE",
@@ -699,7 +662,6 @@ const CATALOG_DATA: Category[] = [
         description:
           "eCall data transmitted after a crash including GPS coordinates, severity, and occupant count.",
       },
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
     ],
   },
   {
@@ -1123,13 +1085,8 @@ const CATALOG_DATA: Category[] = [
 ];
 
 const CART_ITEMS = [
-<<<<<<< HEAD
-  { id: 1, title: "Battery Health Index",    price: "1.00 EUR" },
-  { id: 2, title: "Trip Summary Data",       price: "1.00 EUR" },
-=======
   { id: 1, title: "Battery Health Index", price: "1.00 EUR" },
   { id: 2, title: "Trip Summary Data", price: "1.00 EUR" },
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
   { id: 3, title: "OBD-II Diagnostic Codes", price: "1.00 EUR" },
 ];
 
@@ -1161,10 +1118,6 @@ function TypedSearch({ term }: { term: string }) {
   }, [term]);
   return (
     <span>
-<<<<<<< HEAD
-      <span className="text-fg-muted">{shown}</span>
-      <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse" }}>|</motion.span>
-=======
       <span className="text-white/65">{shown}</span>
       <motion.span
         animate={{ opacity: [1, 0] }}
@@ -1172,7 +1125,6 @@ function TypedSearch({ term }: { term: string }) {
       >
         |
       </motion.span>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
     </span>
   );
 }
@@ -1187,16 +1139,11 @@ function LiveTicker() {
         className="flex gap-8 whitespace-nowrap px-4 py-1.5"
       >
         {dup.map((item, i) => (
-<<<<<<< HEAD
-          <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[9px] text-brand/60">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-=======
           <span
             key={i}
             className="inline-flex items-center gap-1.5 font-mono text-[8px] text-cyan-300/45"
           >
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
             NEW: {item}
           </span>
         ))}
@@ -1204,23 +1151,6 @@ function LiveTicker() {
     </div>
   );
 }
-<<<<<<< HEAD
-
-// Status / type badge helpers — semantic colors, no raw hex
-function StatusBadge({ status }: { status: "AVAILABLE" | "DRAFT" }) {
-  return status === "AVAILABLE"
-    ? <span className="rounded-full bg-emerald-500/10 px-1.5 py-[2px] text-[7.5px] font-bold text-emerald-600">● AVAILABLE</span>
-    : <span className="rounded-full bg-amber-500/10  px-1.5 py-[2px] text-[7.5px] font-bold text-amber-600">◌ DRAFT</span>;
-}
-
-function TypeBadge({ type }: { type: string }) {
-  return type === "B2B"
-    ? <span className="rounded-full bg-brand-subtle px-1.5 py-[2px] text-[7.5px] font-semibold text-brand">{type}</span>
-    : <span className="rounded-full bg-accent-subtle px-1.5 py-[2px] text-[7.5px] font-semibold text-accent">{type}</span>;
-}
-
-function ProductCard({ title, status, types, oems, description, Icon, delay }: Product & { delay: number }) {
-=======
 //das ist komm
 function ProductCard({
   title,
@@ -1232,7 +1162,6 @@ function ProductCard({
   color,
   delay,
 }: Product & { delay: number }) {
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -1240,13 +1169,6 @@ function ProductCard({
       transition={{ delay, duration: 0.34, ease: EASE_PREMIUM }}
       className="flex h-full flex-col rounded-xl border border-border bg-base p-3.5"
     >
-<<<<<<< HEAD
-      {/* Title + icon — all icons brand blue */}
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-bold leading-snug text-fg">{title}</p>
-        <span className="mt-0.5 shrink-0 rounded-md bg-brand-subtle p-2">
-          <Icon className="h-3 w-3 text-brand" />
-=======
       {/* Title + icon */}
       <div className="flex items-start justify-between gap-1">
         <p className="text-[9.5px] font-bold leading-snug text-white">
@@ -1257,26 +1179,10 @@ function ProductCard({
           style={{ backgroundColor: color + "1e" }}
         >
           <Icon className="h-2.5 w-2.5" style={{ color }} />
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
         </span>
       </div>
 
       {/* Badges */}
-<<<<<<< HEAD
-      <div className="mt-2 flex flex-wrap items-center gap-1">
-        <StatusBadge status={status} />
-        {types.map(t => <TypeBadge key={t} type={t} />)}
-      </div>
-
-      {/* Description */}
-      <p className="mt-2.5 line-clamp-2 text-[9px] leading-[1.6] text-fg-muted">{description}</p>
-
-      {/* OEM chips + cart */}
-      <div className="mt-auto flex items-end justify-between gap-1 pt-2.5">
-        <div className="flex flex-wrap gap-1">
-          {oems.slice(0, 2).map(oem => (
-            <span key={oem} className="rounded border border-border px-1.5 py-[1px] font-mono text-[6.5px] uppercase tracking-wide text-fg-subtle">
-=======
       <div className="mt-1.5 flex flex-wrap items-center gap-[3px]">
         <span
           className={cn(
@@ -1316,7 +1222,6 @@ function ProductCard({
               key={oem}
               className="rounded border border-white/[0.08] px-1 py-[1px] font-mono text-[5.5px] uppercase tracking-wide text-white/28"
             >
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
               {oem}
             </span>
           ))}
@@ -1366,11 +1271,6 @@ export function CatalogPreview() {
           {inView && <TypedSearch term={SEARCH_TERMS[searchIdx]} />}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
-<<<<<<< HEAD
-          <span className="rounded-full border border-border px-2.5 py-1 text-[9px] text-fg-muted">Filter ▾</span>
-          <span className="rounded-full border border-border px-2.5 py-1 text-[9px] text-fg-muted">CSV</span>
-          <span className="rounded-full bg-brand px-3 py-1 text-[9px] font-semibold text-white">Highlighting</span>
-=======
           <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[8px] text-white/35">
             Filter ▾
           </span>
@@ -1380,30 +1280,19 @@ export function CatalogPreview() {
           <span className="rounded-full bg-cyan-500/75 px-2.5 py-0.5 text-[8px] font-semibold text-black">
             Highlighting
           </span>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
         </div>
       </div>
 
       {/* Category pills */}
-<<<<<<< HEAD
-      <div className="flex shrink-0 items-center gap-2 overflow-hidden border-b border-border px-4 py-2">
-        <span className="shrink-0 font-mono text-[8px] uppercase tracking-widest text-fg-subtle">CATEGORIES:</span>
-=======
       <div className="flex shrink-0 items-center gap-1.5 overflow-hidden border-b border-white/[0.05] px-4 py-2">
         <span className="shrink-0 font-mono text-[7px] uppercase tracking-widest text-white/22">
           CATEGORIES:
         </span>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
         <div className="flex gap-1.5 overflow-hidden">
           {CATALOG_DATA.map((cat, i) => (
             <motion.span
               key={cat.name}
               animate={{
-<<<<<<< HEAD
-                backgroundColor: catIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
-                color:           catIdx === i ? "#2563EB"               : "rgba(15,23,42,0.45)",
-                borderColor:     catIdx === i ? "rgba(37,99,235,0.25)"  : "rgba(15,23,42,0.12)",
-=======
                 backgroundColor:
                   catIdx === i
                     ? "rgba(34,211,238,0.14)"
@@ -1416,7 +1305,6 @@ export function CatalogPreview() {
                   catIdx === i
                     ? "rgba(34,211,238,0.28)"
                     : "rgba(255,255,255,0.07)",
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
               }}
               transition={{ duration: 0.32 }}
               className="shrink-0 cursor-default rounded-full border px-2.5 py-0.5 text-[9px] font-medium"
@@ -1550,14 +1438,6 @@ function OEMOrbital({ active }: { active: boolean }) {
         })}
       </g>
 
-<<<<<<< HEAD
-      <motion.circle r={36} fill="none" stroke="rgba(37,99,235,0.12)" strokeWidth={16} animate={{ r: [36, 54, 36], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.circle cx={0} cy={0} fill="rgba(37,99,235,0.07)" stroke="rgba(37,99,235,0.45)" strokeWidth={1.5} animate={{ r: [36, 38, 36] }} transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }} />
-      <text textAnchor="middle" y={-5} fontSize={10} fontWeight={700} fill="rgba(15,23,42,0.85)" fontFamily="ui-monospace,monospace">VW</text>
-      <text textAnchor="middle" y={8}  fontSize={6.5} fill="rgba(37,99,235,0.80)" fontFamily="ui-monospace,monospace">Group</text>
-      <circle cx={26} cy={-26} r={8} fill="#2563EB" />
-      <text x={26} y={-23} textAnchor="middle" dominantBaseline="middle" fontSize={4.5} fontWeight={700} fill="white" fontFamily="sans-serif">B2B</text>
-=======
       <motion.circle
         r={36}
         fill="none"
@@ -1607,7 +1487,6 @@ function OEMOrbital({ active }: { active: boolean }) {
       >
         B2B
       </text>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
     </svg>
   );
 }
@@ -1625,17 +1504,6 @@ function DetailPreview() {
             <Battery className="h-5 w-5 text-brand" />
           </span>
           <div className="min-w-0 flex-1">
-<<<<<<< HEAD
-            <p className="text-[13px] font-bold leading-tight text-fg">Battery Care Mode</p>
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <StatusBadge status="AVAILABLE" />
-              <TypeBadge type="B2B" />
-            </div>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
-            className="shrink-0 rounded-lg bg-brand px-3 py-2 text-[10px] font-bold text-white"
-=======
             <p className="text-[12px] font-bold leading-tight text-white">
               Battery Care Mode
             </p>
@@ -1654,7 +1522,6 @@ function DetailPreview() {
               boxShadow: "0 0 20px rgba(34,211,238,0.4)",
             }}
             className="shrink-0 rounded-lg bg-cyan-500/80 px-2.5 py-1.5 text-[9px] font-bold text-black"
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
           >
             ▶ Request
           </motion.button>
@@ -1665,13 +1532,6 @@ function DetailPreview() {
         <OEMOrbital active={inView} />
       </div>
 
-<<<<<<< HEAD
-      <div className="shrink-0 grid grid-cols-4 divide-x divide-border border-t border-border">
-        {[{ label: "Contract", value: "B2B" }, { label: "OEMs", value: "1" }, { label: "API", value: "v1" }, { label: "Status", value: "AVAILABLE" }].map(({ label, value }) => (
-          <div key={label} className="px-3 py-2.5 text-center">
-            <p className="font-mono text-[7.5px] uppercase tracking-widest text-fg-subtle">{label}</p>
-            <p className="mt-0.5 truncate text-[10px] font-bold text-fg-muted">{value}</p>
-=======
       <div className="shrink-0 grid grid-cols-4 divide-x divide-white/[0.05] border-t border-white/[0.05]">
         {[
           { label: "Contract", value: "B2B" },
@@ -1686,24 +1546,16 @@ function DetailPreview() {
             <p className="mt-0.5 truncate text-[8px] font-bold text-white/60">
               {value}
             </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
           </div>
         ))}
       </div>
 
-<<<<<<< HEAD
-      <div className="shrink-0 border-t border-border px-3 py-2.5">
-        <div className="flex items-center justify-between rounded-lg bg-base px-3 py-2.5">
-          <code className="font-mono text-[10px] text-brand">batterycaremode</code>
-          <Copy className="h-3.5 w-3.5 text-brand/50" />
-=======
       <div className="shrink-0 border-t border-white/[0.05] px-3 py-2.5">
         <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2">
           <code className="font-mono text-[9px] text-cyan-300/65">
             batterycaremode
           </code>
           <Copy className="h-3 w-3 text-white/22" />
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
         </div>
       </div>
     </div>
@@ -1747,9 +1599,6 @@ function CartPreview() {
           <ShoppingCart className="h-4.5 w-4.5 text-brand" style={{ width: "1.125rem", height: "1.125rem" }} />
           <span className="text-[13px] font-bold text-fg">Shopping Bag</span>
           <AnimatePresence mode="wait">
-<<<<<<< HEAD
-            <motion.span key={items.length} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.2 }} className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-brand font-mono text-[8.5px] font-bold text-white" style={{ width: "1.125rem", height: "1.125rem" }}>
-=======
             <motion.span
               key={items.length}
               initial={{ scale: 0.6, opacity: 0 }}
@@ -1758,7 +1607,6 @@ function CartPreview() {
               transition={{ duration: 0.2 }}
               className="flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 font-mono text-[8px] font-bold text-black"
             >
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
               {items.length}
             </motion.span>
           </AnimatePresence>
@@ -1766,11 +1614,6 @@ function CartPreview() {
         <X className="h-3.5 w-3.5 text-fg-subtle" />
       </div>
 
-<<<<<<< HEAD
-      <div className="flex shrink-0 border-b border-border">
-        {(["requests", "orders"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={cn("flex-1 py-2.5 text-[10px] font-semibold transition-colors", tab === t ? "border-b-2 border-brand text-brand" : "text-fg-subtle hover:text-fg-muted")}>
-=======
       <div className="flex shrink-0 border-b border-white/[0.06]">
         {(["requests", "orders"] as const).map((t) => (
           <button
@@ -1783,7 +1626,6 @@ function CartPreview() {
                 : "text-white/28 hover:text-white/50",
             )}
           >
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
             {t === "requests" ? "My Requests" : "Orders"}
           </button>
         ))}
@@ -1801,13 +1643,6 @@ function CartPreview() {
             >
               {ordered ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3">
-<<<<<<< HEAD
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/15">
-                    <Check className="h-5 w-5 text-emerald-600" />
-                  </motion.div>
-                  <p className="text-[12px] font-semibold text-fg-muted">Order placed!</p>
-                  <p className="text-[10px] text-fg-subtle">Saved to order history</p>
-=======
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -1822,7 +1657,6 @@ function CartPreview() {
                   <p className="text-[9px] text-white/30">
                     Saved to order history
                   </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
                 </div>
               ) : items.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
@@ -1832,13 +1666,6 @@ function CartPreview() {
                 <>
                   <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
                     <AnimatePresence>
-<<<<<<< HEAD
-                      {items.map(item => (
-                        <motion.div key={item.id} layout initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28 }} className="flex items-center justify-between rounded-xl border border-border bg-base px-3 py-2.5">
-                          <div>
-                            <p className="text-[10px] font-semibold text-fg">{item.title}</p>
-                            <p className="text-[9px] text-fg-muted">{item.price}</p>
-=======
                       {items.map((item) => (
                         <motion.div
                           key={item.id}
@@ -1856,25 +1683,12 @@ function CartPreview() {
                             <p className="text-[8px] text-white/32">
                               {item.price}
                             </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
                           </div>
                           <X className="h-3 w-3 text-fg-subtle" />
                         </motion.div>
                       ))}
                     </AnimatePresence>
                   </div>
-<<<<<<< HEAD
-                  <div className="shrink-0 border-t border-border px-3 pb-3 pt-3">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[10px] text-fg-muted">Total</span>
-                      <span className="text-[13px] font-extrabold text-fg">{items.length}.00 EUR</span>
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(37,99,235,0.45)" }}
-                      animate={{ boxShadow: ["0 0 0px rgba(37,99,235,0)", "0 0 22px rgba(37,99,235,0.35)", "0 0 0px rgba(37,99,235,0)"] }}
-                      transition={{ boxShadow: { duration: 2.2, repeat: Infinity } }}
-                      className="w-full rounded-xl bg-brand py-2.5 text-[11px] font-bold text-white"
-=======
                   <div className="shrink-0 border-t border-white/[0.05] px-3 pb-3 pt-2.5">
                     <div className="mb-2.5 flex items-center justify-between">
                       <span className="text-[9px] text-white/38">Total</span>
@@ -1898,7 +1712,6 @@ function CartPreview() {
                         boxShadow: { duration: 2.2, repeat: Infinity },
                       }}
                       className="w-full rounded-xl bg-cyan-500 py-2.5 text-[10px] font-bold text-black"
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
                     >
                       Order All
                     </motion.button>
@@ -1909,23 +1722,6 @@ function CartPreview() {
           )}
 
           {tab === "orders" && (
-<<<<<<< HEAD
-            <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-3">
-              <div className="rounded-xl border border-border bg-base p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-fg">Order #001</span>
-                  <span className="text-[10px] font-semibold text-brand">3.00 EUR</span>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {CART_ITEMS.map(item => (
-                    <p key={item.id} className="text-[9px] text-fg-muted">· {item.title}</p>
-                  ))}
-                </div>
-                <div className="mt-2.5 flex items-center gap-1.5">
-                  <Clock className="h-3 w-3 text-brand/50" />
-                  <span className="text-[8px] text-fg-subtle">just now</span>
-                  <span className="ml-auto rounded-full bg-emerald-500/10 px-1.5 py-px text-[7.5px] font-bold text-emerald-600">COMPLETED</span>
-=======
             <motion.div
               key="orders"
               initial={{ opacity: 0 }}
@@ -1955,7 +1751,6 @@ function CartPreview() {
                   <span className="ml-auto rounded-full bg-green-500/15 px-1.5 py-px text-[7px] font-bold text-green-400">
                     COMPLETED
                   </span>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
                 </div>
               </div>
             </motion.div>
@@ -1986,17 +1781,8 @@ const STAGGER = {
 
 export function FeatureBentoGrid() {
   return (
-<<<<<<< HEAD
-    <section id="catalog" className="relative bg-base px-8 py-28">
-      {/* Decorative vehicle animation layer — behind all content */}
-      <VehicleBackground iconOpacity={0.15} laneOpacity={0.15} laneSpeed={34} floatAmplitude={13} />
-
-      <div className="relative z-[1] mx-auto max-w-7xl">
-
-=======
     <section id="catalog" className="relative bg-ink px-6 py-28 text-white">
       <div className="mx-auto max-w-6xl">
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -2008,15 +1794,9 @@ export function FeatureBentoGrid() {
             Built for the way{" "}
             <span className="text-brand">enterprises</span> buy data.
           </h2>
-<<<<<<< HEAD
-          <p className="mt-4 text-fg-muted">
-            Every feature engineered for security, speed, and a frictionless{" "}
-            <span className="font-semibold text-fg">B2B checkout</span>.
-=======
           <p className="mt-4 text-white/50">
             Every feature engineered for security, speed, and a frictionless B2B
             checkout.
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
           </p>
         </motion.div>
 
@@ -2035,14 +1815,6 @@ export function FeatureBentoGrid() {
             style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-3 lg:row-span-2"
           >
-<<<<<<< HEAD
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/[0.06] blur-[80px]" />
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-=======
             <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/8 blur-[80px]" />
             <div className="shrink-0 px-5 pt-4">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-cyan-300/55">
@@ -2055,7 +1827,6 @@ export function FeatureBentoGrid() {
                 Fuzzy full-text search · 10 categories · OEM logos · live ticker
                 · HTMX filters
               </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
             </div>
             <div className="shrink-0 px-6 pt-5">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Product Catalog</span>
@@ -2076,14 +1847,6 @@ export function FeatureBentoGrid() {
             style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-<<<<<<< HEAD
-            <div className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-accent/[0.07] blur-[60px]" />
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-=======
             <div className="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-5">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-blue-300/55">
@@ -2095,7 +1858,6 @@ export function FeatureBentoGrid() {
               <p className="text-[10px] text-white/38">
                 Orbital hub · Specs card · JSON Schema · Attributes
               </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
             </div>
             <div className="shrink-0 px-5 pt-5">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Item Detail</span>
@@ -2116,14 +1878,6 @@ export function FeatureBentoGrid() {
             style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.18), 0 8px 32px rgba(37,99,235,0.10), 0 32px 80px rgba(37,99,235,0.07), 0 48px 100px rgba(15,23,42,0.07)" }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-<<<<<<< HEAD
-            <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-brand/[0.06] blur-[60px]" />
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-=======
             <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-5">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-purple-300/55">
@@ -2135,7 +1889,6 @@ export function FeatureBentoGrid() {
               <p className="text-[10px] text-white/38">
                 localStorage persistence · UUID items · order history
               </p>
->>>>>>> 094e4e52c1199e1fb9f862102b1a5f1fadcf304e
             </div>
             <div className="shrink-0 px-5 pt-5">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Request System</span>
