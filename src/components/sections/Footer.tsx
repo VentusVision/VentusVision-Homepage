@@ -13,7 +13,7 @@ const NAV = [
   },
   {
     heading: "Projekt",
-    links: ["SEP 2025/26", "Hochschule Mannheim", "Team Ventus Vision", "CARUSO GmbH"],
+    links: ["SEP 2026", "Hochschule Mannheim", "Team Ventus Vision", "CARUSO GmbH"],
   },
 ] as const;
 
