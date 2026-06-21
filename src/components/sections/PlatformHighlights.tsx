@@ -5,6 +5,7 @@ import { DataExplorerPreview } from "../ui/DataExplorerPreview";
 import { MapPreview } from "../ui/MapPreview";
 import { VehicleBackground } from "../ui/VehicleBackground";
 import { EASE_PREMIUM } from "../../lib/motion";
+import { SectionBadge } from "../ui/SectionBadge";
 
 interface Highlight {
   id: string;
@@ -73,10 +74,7 @@ function HighlightRow({
           transition={{ duration: 0.7, ease: EASE_PREMIUM }}
           className="max-w-2xl"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-brand shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-            {eyebrow}
-          </span>
+          <SectionBadge label={eyebrow} className="text-xs" />
           <h3 className="mt-5 text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
             {title}
           </h3>

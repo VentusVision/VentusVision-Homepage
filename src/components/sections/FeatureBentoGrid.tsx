@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useEffect, useRef, useState, useMemo, useCallback, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   Search, ShoppingCart, Battery, Copy, X, ArrowUpDown, Check, Clock,
   SlidersHorizontal
@@ -7,10 +7,16 @@ import {
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { VehicleBackground } from "../ui/VehicleBackground";
+import { useCatalogFilter, SORT_OPTIONS } from "../../hooks/useCatalogFilter";
+import { useAutoDemo } from "../../hooks/useAutoDemo";
+import { CATALOG_ITEMS, CATALOG_CATEGORIES, CATALOG_PREVIEW_ITEMS, type DataItem } from "../../data/catalog";
 
 // ─────────────────────────────────────────────
-// Data
+// Constants
 // ─────────────────────────────────────────────
+
+const BENTO_SHADOW = "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)";
+const BENTO_HOVER_SHADOW = "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)";
 
 const SEARCH_TERMS = [
   "EV charging range",
@@ -30,8 +36,6 @@ const TICKER_RAW = [
   "gearState · 31m ago",
 ];
 
-import { CATALOG_ITEMS, CATALOG_CATEGORIES, CATALOG_PREVIEW_ITEMS, type DataItem } from "../../data/catalog";
-
 
 const CART_ITEMS = [
   { id: 1, title: "Battery Health Index", price: "1.00 EUR" },
@@ -49,148 +53,6 @@ const ORBITAL_NODES = [
   { label: "VW CV", angle: 210 },
 ];
 
-// ─────────────────────────────────────────────
-// Filter / Search / Sort hook
-// ─────────────────────────────────────────────
-
-type SortKey = "popularity" | "az" | "za" | "status";
-
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "popularity",  label: "Popularity"       },
-  { value: "az",          label: "Alphabetical A–Z"  },
-  { value: "za",          label: "Alphabetical Z–A"  },
-  { value: "status",      label: "Available first"   },
-];
-
-function useCatalogFilter(items: DataItem[]) {
-  const [query,         setQuery]         = useState("");
-  const [debouncedQ,    setDebouncedQ]    = useState("");
-  const [selectedCat,   setSelectedCat]   = useState<string | null>(null);
-  const [sortBy,        setSortBy]        = useState<SortKey>("popularity");
-  const [highlightOn,   setHighlightOn]   = useState(true);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(query.trim()), 200);
-    return () => clearTimeout(t);
-  }, [query]);
-
-  const filtered = useMemo(() => {
-    let result = [...items];
-
-    if (selectedCat) result = result.filter(i => i.category === selectedCat);
-
-    if (debouncedQ) {
-      const words = debouncedQ.toLowerCase().split(/\s+/).filter(Boolean);
-      result = result.filter(item => {
-        const hay = `${item.title} ${item.description} ${item.category} ${item.suppliers.join(" ")}`.toLowerCase();
-        return words.every(w => hay.includes(w));
-      });
-    }
-
-    switch (sortBy) {
-      case "az":     result.sort((a, b) => a.title.localeCompare(b.title)); break;
-      case "za":     result.sort((a, b) => b.title.localeCompare(a.title)); break;
-      case "status": result.sort((a,) => (a.status === "AVAILABLE" ? -1 : 1)); break;
-    }
-
-    return result;
-  }, [items, debouncedQ, selectedCat, sortBy]);
-
-  const clearAll = useCallback(() => { setQuery(""); setSelectedCat(null); }, []);
-
-  return { query, setQuery, debouncedQ, selectedCat, setSelectedCat, sortBy, setSortBy, highlightOn, setHighlightOn, filtered, clearAll };
-}
-
-// ─────────────────────────────────────────────
-// Auto-demo sequences
-// ─────────────────────────────────────────────
-
-type DemoStep =
-  | { kind: "type";   value: string }
-  | { kind: "cat";    value: string | null }
-  | { kind: "sort";   value: SortKey }
-  | { kind: "pause";  ms: number }
-  | { kind: "clear" };
-
-const DEMO_SEQUENCE: DemoStep[] = [
-  { kind: "pause",  ms: 800 },
-  { kind: "type",   value: "battery health" },
-  { kind: "pause",  ms: 2400 },
-  { kind: "clear" },
-  { kind: "pause",  ms: 400 },
-  { kind: "cat",    value: "Location & Navigation" },
-  { kind: "pause",  ms: 2600 },
-  { kind: "sort",   value: "az" },
-  { kind: "pause",  ms: 2200 },
-  { kind: "sort",   value: "popularity" },
-  { kind: "cat",    value: null },
-  { kind: "pause",  ms: 400 },
-  { kind: "type",   value: "charging" },
-  { kind: "pause",  ms: 2000 },
-  { kind: "clear" },
-  { kind: "pause",  ms: 400 },
-  { kind: "cat",    value: "Safety & Incidents" },
-  { kind: "pause",  ms: 2500 },
-  { kind: "sort",   value: "status" },
-  { kind: "pause",  ms: 2000 },
-  { kind: "sort",   value: "popularity" },
-  { kind: "cat",    value: null },
-  { kind: "pause",  ms: 400 },
-];
-
-function useAutoDemo(
-  inView: boolean,
-  setQuery: (q: string) => void,
-  setSelectedCat: (c: string | null) => void,
-  setSortBy: (s: SortKey) => void,
-) {
-  const stepRef  = useRef(0);
-  const charRef  = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const run = useCallback(() => {
-    const step = DEMO_SEQUENCE[stepRef.current % DEMO_SEQUENCE.length];
-
-    if (step.kind === "clear") {
-      setQuery("");
-      charRef.current = 0;
-      stepRef.current++;
-      timerRef.current = setTimeout(run, 60);
-
-    } else if (step.kind === "cat") {
-      setSelectedCat(step.value);
-      stepRef.current++;
-      timerRef.current = setTimeout(run, 60);
-
-    } else if (step.kind === "sort") {
-      setSortBy(step.value);
-      stepRef.current++;
-      timerRef.current = setTimeout(run, 60);
-
-    } else if (step.kind === "pause") {
-      stepRef.current++;
-      timerRef.current = setTimeout(run, step.ms);
-
-    } else if (step.kind === "type") {
-      const target = step.value;
-      if (charRef.current <= target.length) {
-        setQuery(target.slice(0, charRef.current));
-        charRef.current++;
-        timerRef.current = setTimeout(run, charRef.current === 0 ? 0 : 75);
-      } else {
-        charRef.current = 0;
-        stepRef.current++;
-        timerRef.current = setTimeout(run, 60);
-      }
-    }
-  }, [setQuery, setSelectedCat, setSortBy]);
-
-  useEffect(() => {
-    if (!inView) return;
-    timerRef.current = setTimeout(run, 600);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [inView, run]);
-}
 
 // ─────────────────────────────────────────────
 // Highlight component
@@ -412,32 +274,32 @@ export function CatalogPreview({ preview = false }: { preview?: boolean }) {
               CATEGORIES:
             </span>
             <div className="flex flex-wrap gap-2">
-              <motion.span
-                animate={{
+              <span
+                style={{
                   backgroundColor: !selectedCat ? "rgba(37,99,235,0.10)" : "transparent",
                   color:           !selectedCat ? "rgba(37,99,235,1)"    : "rgba(15,23,42,0.35)",
                   borderColor:     !selectedCat ? "rgba(37,99,235,0.30)" : "rgba(15,23,42,0.12)",
+                  transition:      "background-color 0.32s ease, color 0.32s ease, border-color 0.32s ease",
                 }}
-                transition={{ duration: 0.32 }}
                 className="shrink-0 cursor-default rounded-full border px-3 py-1 text-[12px] font-medium"
               >
                 All Categories
-              </motion.span>
+              </span>
 
               {CATALOG_CATEGORIES.map((cat, i) => (
                 <span key={cat}>
                   {i === 7 && <span className="block w-full" />}
-                  <motion.span
-                    animate={{
+                  <span
+                    style={{
                       backgroundColor: selectedCat === cat ? "rgba(37,99,235,0.10)" : "transparent",
                       color:           selectedCat === cat ? "rgba(37,99,235,1)"    : "rgba(15,23,42,0.35)",
                       borderColor:     selectedCat === cat ? "rgba(37,99,235,0.30)" : "rgba(15,23,42,0.12)",
+                      transition:      "background-color 0.32s ease, color 0.32s ease, border-color 0.32s ease",
                     }}
-                    transition={{ duration: 0.32 }}
                     className="shrink-0 cursor-default rounded-full border px-3 py-1 text-[12px] font-medium"
                   >
                     {cat}
-                  </motion.span>
+                  </span>
                 </span>
               ))}
             </div>
@@ -611,16 +473,21 @@ function OEMOrbital({ active }: { active: boolean }) {
         fill="none"
         stroke="rgba(34,211,238,0.1)"
         strokeWidth={16}
-        animate={{ r: [36, 54, 36], opacity: [0.6, 0, 0.6] }}
+        vectorEffect="non-scaling-stroke"
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+        animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
         transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.circle
         cx={0}
         cy={0}
+        r={36}
         fill="rgba(34,211,238,0.07)"
         stroke="rgba(34,211,238,0.45)"
         strokeWidth={1.5}
-        animate={{ r: [36, 38, 36] }}
+        vectorEffect="non-scaling-stroke"
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+        animate={{ scale: [1, 1.056, 1] }}
         transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
       />
       <text
@@ -842,12 +709,20 @@ function CartPreview() {
                       <span className="text-[18px] font-extrabold text-fg">{items.length}.00 EUR</span>
                     </div>
                     <motion.button
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(37,99,235,0.45)" }}
-                      animate={{ boxShadow: ["0 4px 14px rgba(37,99,235,0.20)", "0 4px 28px rgba(37,99,235,0.40)", "0 4px 14px rgba(37,99,235,0.20)"] }}
-                      transition={{ boxShadow: { duration: 2.2, repeat: Infinity } }}
-                      className="w-full rounded-2xl bg-brand py-3 text-[13px] font-bold text-white"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="relative w-full overflow-hidden rounded-2xl bg-brand py-3 text-[13px] font-bold text-white"
+                      style={{ boxShadow: "0 4px 20px rgba(37,99,235,0.30)" }}
                     >
-                      Order All
+                      {/* Glow pulse via opacity (compositor-only) */}
+                      <motion.span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{ boxShadow: "0 4px 28px rgba(37,99,235,0.45)" }}
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      <span className="relative">Order All</span>
                     </motion.button>
                   </div>
                 </>
@@ -901,6 +776,17 @@ const STAGGER = {
   visible: { transition: { staggerChildren: 0.14, delayChildren: 0.05 } },
 };
 
+function MacOSBar({ label }: { label: string }) {
+  return (
+    <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
+      <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+      <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+      <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+      <span className="ml-auto font-mono text-[10px] text-fg-subtle">{label}</span>
+    </div>
+  );
+}
+
 export function FeatureBentoGrid() {
   return (
     <section id="catalog" className="relative bg-base px-8 py-28">
@@ -933,18 +819,12 @@ export function FeatureBentoGrid() {
           {/* ── Product Catalog (col-span-3, row-span-2) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
+            whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
+            style={{ boxShadow: BENTO_SHADOW }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-2"
           >
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · data-catalog</span>
-            </div>
+            <MacOSBar label="caruso · data-catalog" />
 
             {/* Ambient glows */}
             <div className="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-cyan-400/8 blur-[80px]" />
@@ -1001,18 +881,12 @@ export function FeatureBentoGrid() {
           {/* ── Item Detail / OEM Orbital (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
+            whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
+            style={{ boxShadow: BENTO_SHADOW }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · item-detail</span>
-            </div>
+            <MacOSBar label="caruso · item-detail" />
             <div className="pointer-events-none absolute -left-12 top-8 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Item Detail</span>
@@ -1028,18 +902,12 @@ export function FeatureBentoGrid() {
           {/* ── Shopping Cart (col-span-1, row-span-1) ── */}
           <motion.div
             variants={CARD_REVEAL}
-            whileHover={{ y: -3, boxShadow: "0 0 0 2px rgba(37,99,235,0.50), 0 2px 8px rgba(37,99,235,0.18), 0 12px 36px rgba(37,99,235,0.22), 0 40px 80px rgba(37,99,235,0.14), 0 0 70px rgba(6,182,212,0.13)" }}
+            whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.22), 0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(37,99,235,0.10), 0 16px 40px rgba(37,99,235,0.13), 0 48px 100px rgba(37,99,235,0.08), 0 80px 140px rgba(15,23,42,0.06)" }}
+            style={{ boxShadow: BENTO_SHADOW }}
             className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
           >
-            {/* macOS title bar */}
-            <div className="flex shrink-0 items-center gap-1.5 border-b border-brand/10 bg-base px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-              <span className="ml-auto font-mono text-[10px] text-fg-subtle">caruso · shopping-cart</span>
-            </div>
+            <MacOSBar label="caruso · shopping-cart" />
             <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Request System</span>

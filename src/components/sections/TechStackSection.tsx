@@ -1,10 +1,11 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Server, Database, Code2, Globe, GitBranch,
   PenTool, Upload, FileJson, Layers, RefreshCw, Layout,
 } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
+import { SectionBadge } from "../ui/SectionBadge";
 
 // ── Data ──────────────────────────────────────
 
@@ -42,22 +43,37 @@ const DEV_STACK = [
 // ── Animated packet stream ─────────────────────
 
 function PacketStream({ reverse = false, count = 6 }: { reverse?: boolean; count?: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setW(el.offsetWidth));
+    ro.observe(el);
+    setW(el.offsetWidth);
+    return () => ro.disconnect();
+  }, []);
+
   const colors = ["#2563EB", "#06B6D4", "#7C3AED", "#0EA5E9", "#A855F7", "#06B6D4", "#3B82F6", "#10B981"];
+  const spread = Math.max(count - 1, 1);
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand/4 to-transparent" />
       <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-brand/15 to-transparent" />
-      {Array.from({ length: count }).map((_, i) => {
-        const top  = 6 + (i / (count - 1)) * 88;
-        const dur  = 1.3 + i * 0.18;
+      {w > 0 && Array.from({ length: count }).map((_, i) => {
+        const top   = 6 + (i / spread) * 88;
+        const dur   = 1.3 + i * 0.18;
         const delay = i * 0.3;
         const color = colors[i % colors.length];
         return (
           <motion.div
             key={i}
             className="absolute h-2 w-2 rounded-full"
-            style={{ top: `${top}%`, background: color, boxShadow: `0 0 8px 3px ${color}77`, left: reverse ? "100%" : "-8px" }}
-            animate={{ left: reverse ? ["100%", "-8px"] : ["-8px", "100%"], opacity: [0, 1, 1, 0] }}
+            style={{ top: `${top}%`, background: color, boxShadow: `0 0 8px 3px ${color}77`, left: 0 }}
+            initial={{ x: reverse ? w : -8, opacity: 0 }}
+            animate={{ x: reverse ? -8 : w, opacity: [0, 1, 1, 0] }}
             transition={{ duration: dur, repeat: Infinity, delay, ease: "linear" }}
           />
         );
@@ -136,18 +152,24 @@ function Hub({ inView }: { inView: boolean }) {
 
       {/* Header */}
       <div className="relative border-b border-brand/10 px-5 py-5 text-center">
-        <motion.div
-          animate={{ boxShadow: ["0 0 16px rgba(37,99,235,0.25)", "0 0 32px rgba(37,99,235,0.45)", "0 0 16px rgba(37,99,235,0.25)"] }}
-          transition={{ duration: 2.8, repeat: Infinity }}
-          className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1.5"
+        <div
+          className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1.5"
           style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.12), 0 4px 14px rgba(37,99,235,0.18)" }}
         >
+          {/* Glow pulse via opacity (compositor-only — no paint per frame) */}
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{ boxShadow: "0 0 32px rgba(37,99,235,0.45)" }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+          />
           <img
             src={`${import.meta.env.BASE_URL}CarusoBall.png`}
             alt="Caruso"
-            className="h-full w-full object-contain"
+            className="relative h-full w-full object-contain"
           />
-        </motion.div>
+        </div>
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand/60">CARUSO</p>
         <p className="mt-0.5 text-[17px] font-extrabold tracking-tight text-fg">Data Marketplace</p>
         <div className="mt-1.5 flex items-center justify-center gap-1.5">
@@ -199,10 +221,7 @@ export function TechStackSection() {
           transition={{ duration: 0.6, ease: EASE_PREMIUM }}
           className="mb-16 text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-brand shadow-sm">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-            Techstack
-          </span>
+          <SectionBadge label="Techstack" pulse className="text-[11px]" />
           <h2 className="mt-5 text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
             Gebaut mit{" "}
             <span style={{ background: "linear-gradient(to right, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
