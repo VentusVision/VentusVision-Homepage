@@ -249,7 +249,7 @@ export function TeamSection() {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-fg-muted shadow-card">
                 <GitBranch className="h-4 w-4 text-brand" />
-                SEP 2025 / 26
+                SEP 2026
               </span>
             </div>
           </motion.div>
