@@ -27,7 +27,7 @@ const DEMO_SEQUENCE: DemoStep[] = [
   { kind: "pause",  ms: 400 },
   { kind: "cat",    value: "Safety & Incidents" },
   { kind: "pause",  ms: 2500 },
-  { kind: "sort",   value: "status" },
+  { kind: "sort",   value: "newest" },
   { kind: "pause",  ms: 2000 },
   { kind: "sort",   value: "popularity" },
   { kind: "cat",    value: null },
