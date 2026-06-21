@@ -246,12 +246,12 @@ export function MapPreview() {
       </div>
 
       {/* ── Sidebar ──────────────────────────────────────────── */}
-      <div className="flex w-[290px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface">
+      <div className="flex w-[330px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface">
 
         {/* Header */}
         <div className="shrink-0 border-b border-border px-5 py-3.5">
           <div className="flex items-center justify-between">
-            <p className="text-[15px] font-bold tracking-tight text-brand">Map Explorer</p>
+            <p className="text-[17px] font-bold tracking-tight text-brand">Map Explorer</p>
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
@@ -261,10 +261,10 @@ export function MapPreview() {
 
         {/* Search */}
         <div className="shrink-0 border-b border-border px-5 py-3.5">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">Search</p>
+          <p className="mb-2 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Search</p>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-base px-3 py-2">
-            <Search className="h-3.5 w-3.5 shrink-0 text-fg-subtle" />
-            <span className="flex-1 font-mono text-[11px] text-fg-muted">
+            <Search className="h-4 w-4 shrink-0 text-fg-subtle" />
+            <span className="flex-1 font-mono text-[13px] text-fg-muted">
               {searchText}
               <span
                 className="inline-block h-[12px] w-[1.5px] translate-y-[1px] bg-brand/70"
@@ -276,7 +276,7 @@ export function MapPreview() {
 
         {/* Categories */}
         <div className="shrink-0 border-b border-border px-5 py-3.5">
-          <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">Categories</p>
+          <p className="mb-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Categories</p>
           <div className="flex flex-wrap gap-1.5">
             {CATS.map((cat, i) => {
               const isActive = i === catIdx;
@@ -289,7 +289,7 @@ export function MapPreview() {
                     color: isActive ? cat.color : "rgba(15,23,42,0.45)",
                   }}
                   transition={{ duration: 0.3 }}
-                  className="flex cursor-default items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium"
+                  className="flex cursor-default items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium"
                 >
                   <span
                     className="h-[6px] w-[6px] rounded-full transition-colors duration-300"
@@ -305,7 +305,7 @@ export function MapPreview() {
           <div className="mt-3 flex items-center gap-1.5">
             {["All", "None"].map(lbl => (
               <span key={lbl}
-                className="cursor-default rounded-md border border-border bg-base px-2.5 py-1 font-mono text-[10px] text-fg-subtle">
+                className="cursor-default rounded-md border border-border bg-base px-2.5 py-1 font-mono text-[12px] text-fg-subtle">
                 {lbl}
               </span>
             ))}
@@ -316,7 +316,7 @@ export function MapPreview() {
                 color: greyActive ? "#2563EB" : "rgba(15,23,42,0.40)",
               }}
               transition={{ duration: 0.35 }}
-              className="cursor-default rounded-md border px-2.5 py-1 font-mono text-[10px]"
+              className="cursor-default rounded-md border px-2.5 py-1 font-mono text-[12px]"
             >
               Grey Unassigned
             </motion.span>
@@ -325,7 +325,7 @@ export function MapPreview() {
 
         {/* Quests */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-3.5">
-          <p className="mb-2.5 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">Quests</p>
+          <p className="mb-2.5 shrink-0 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Quests</p>
           <div className="flex flex-col gap-1 overflow-hidden">
             {QUESTS.map((q, i) => {
               const isActive = i === questIdx;
@@ -339,14 +339,14 @@ export function MapPreview() {
                   transition={{ duration: 0.3 }}
                   className="flex items-center gap-2.5 rounded-lg border px-3 py-2"
                 >
-                  <Link className="h-3.5 w-3.5 shrink-0 text-fg-subtle" />
+                  <Link className="h-4 w-4 shrink-0 text-fg-subtle" />
                   <span className={cn(
-                    "flex-1 truncate text-[11px] transition-colors duration-300",
+                    "flex-1 truncate text-[13px] transition-colors duration-300",
                     isActive ? "font-semibold text-fg" : "text-fg-muted",
                   )}>
                     {q.label}
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] text-fg-subtle">
+                  <span className="shrink-0 font-mono text-[12px] text-fg-subtle">
                     {q.done}/{q.total}
                   </span>
                   <motion.span
@@ -379,7 +379,7 @@ export function MapPreview() {
               />
             </div>
             <ZoomIn className="h-4 w-4 text-fg-subtle" />
-            <span className="w-10 text-right font-mono text-[10px] tabular-nums text-fg-muted">
+            <span className="w-10 text-right font-mono text-[12px] tabular-nums text-fg-muted">
               {zoomPct}%
             </span>
           </div>
