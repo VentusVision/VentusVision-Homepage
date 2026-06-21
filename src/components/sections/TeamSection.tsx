@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { GraduationCap, GitBranch } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
+import { SectionBadge } from "../ui/SectionBadge";
 
 // Pentagon layout — each member at 72° apart, starting from top
 const TEAM = [
@@ -202,10 +203,7 @@ export function TeamSection() {
           transition={{ duration: 0.6, ease: EASE_PREMIUM }}
           className="mb-4 text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-brand shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-            Team Ventus Vision
-          </span>
+          <SectionBadge label="Team Ventus Vision" className="text-[11px]" />
         </motion.div>
 
         {/* Two-column: text left, constellation right */}

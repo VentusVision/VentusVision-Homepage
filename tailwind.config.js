@@ -54,6 +54,19 @@ export default {
         // Updated to soft blue-tinted radial for light hero
         "radial-glow": "radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.06) 0%, transparent 68%)",
       },
+
+      keyframes: {
+        // Seamless marquee: animate exactly one copy width (–50% of two equal copies)
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to:   { transform: "translateX(-50%)" },
+        },
+      },
+
+      animation: {
+        // Speed: change the duration here (default 32s = relaxed scroll)
+        marquee: "marquee 32s linear infinite",
+      },
     },
   },
   plugins: [],

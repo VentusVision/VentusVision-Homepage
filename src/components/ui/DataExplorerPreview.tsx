@@ -94,12 +94,12 @@ export function DataExplorerPreview() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          <span className="truncate font-mono text-[9px] text-fg-subtle">
+          <span className="truncate font-mono text-[12px] text-fg-subtle">
             <motion.span key={`cnt-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {dataset.count}
             </motion.span>
             {" category-relevant items · OEM distribution for "}
-            <motion.span key={`cat-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-fg-muted">
+            <motion.span key={`cat-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-semibold text-fg-muted">
               {dataset.category}
             </motion.span>
           </span>
@@ -169,20 +169,22 @@ export function DataExplorerPreview() {
                     </motion.span>
                   )}
 
-                  {/* Bar */}
+                  {/* Bar — scaleY is compositor-compositable; height was not */}
                   <motion.div
                     key={`bar-${dataIdx}-${i}`}
                     className="absolute bottom-0 rounded-t-[3px]"
                     style={{
                       left: "18%",
                       right: "18%",
+                      height: `${heightPct}%`,
                       backgroundColor: color,
                       opacity: isTip ? 1 : 0.8,
                       boxShadow: isTip ? `0 0 18px ${color}60` : "none",
-                      willChange: "height",
+                      transformOrigin: "bottom",
+                      willChange: "transform",
                     }}
-                    initial={{ height: 0 }}
-                    animate={{ height: inView ? `${heightPct}%` : 0 }}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: inView ? 1 : 0 }}
                     transition={{ duration: 0.72, ease: EASE_PREMIUM, delay: i * 0.07 }}
                   />
                 </div>
@@ -225,17 +227,17 @@ export function DataExplorerPreview() {
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Channel</p>
             <div className="flex gap-2">
               {CHANNELS.map((ch, i) => (
-                <motion.span
+                <span
                   key={ch}
-                  animate={{
+                  style={{
                     backgroundColor: channelIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
                     color:           channelIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
+                    transition:      "background-color 0.28s ease, color 0.28s ease",
                   }}
-                  transition={{ duration: 0.28 }}
                   className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
                 >
                   {ch}
-                </motion.span>
+                </span>
               ))}
             </div>
           </div>
@@ -245,17 +247,17 @@ export function DataExplorerPreview() {
             <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Status</p>
             <div className="flex gap-2">
               {STATUSES.map((st, i) => (
-                <motion.span
+                <span
                   key={st}
-                  animate={{
+                  style={{
                     backgroundColor: statusIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
                     color:           statusIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
+                    transition:      "background-color 0.28s ease, color 0.28s ease",
                   }}
-                  transition={{ duration: 0.28 }}
                   className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
                 >
                   {st}
-                </motion.span>
+                </span>
               ))}
             </div>
           </div>
