@@ -1,8 +1,8 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Search, ShoppingCart, Battery, Copy, X, ArrowUpDown, Check, Clock,
-  SlidersHorizontal
+  Search, ShoppingCart, Battery, X, ArrowUpDown, Check, Clock,
+  SlidersHorizontal, ChevronLeft, Copy,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM } from "../../lib/motion";
@@ -42,17 +42,6 @@ const CART_ITEMS = [
   { id: 2, title: "Trip Summary Data", price: "1.00 EUR" },
   { id: 3, title: "OBD-II Diagnostic Codes", price: "1.00 EUR" },
 ];
-
-const ORBITAL_R = 82;
-const ORBITAL_NODES = [
-  { label: "VW", angle: -90 },
-  { label: "Audi", angle: -30 },
-  { label: "Seat", angle: 30 },
-  { label: "Skoda", angle: 90 },
-  { label: "Cupra", angle: 150 },
-  { label: "VW CV", angle: 210 },
-];
-
 
 // ─────────────────────────────────────────────
 // Highlight component
@@ -400,195 +389,258 @@ export function CatalogPreview({ preview = false }: { preview?: boolean }) {
 }
 
 // ─────────────────────────────────────────────
-// Card 2 — Item Detail / OEM Orbital
+// Card 2 — Item Detail
 // ─────────────────────────────────────────────
 
-const ORBITAL_SPIN: CSSProperties = {
-  transformBox: "fill-box",
-  transformOrigin: "center",
-  animation: "orbital-spin 120s linear infinite",
-};
-const ORBITAL_COUNTER: CSSProperties = {
-  transformBox: "fill-box",
-  transformOrigin: "center",
-  animation: "orbital-spin-reverse 120s linear infinite",
-};
+type OEMChild = { abbr: string; name: string };
 
-function OEMOrbital({ active }: { active: boolean }) {
+// Pure-SVG orbital group — avoids CSS transform conflicts between
+// Framer Motion rotation and the translate(-50%,-50%) centering trick.
+// Strategy: static SVG `transform="translate(cx,cy)"` moves the coordinate
+// origin to the parent OEM center, then Framer Motion only manages `rotate`.
+// `transformBox:"fill-box" + transformOrigin:"center"` always rotates around
+// the element's own geometric center — no extra offset math needed.
+function OEMOrbitSVG({
+  abbr, label, cx, cy, orbitR, color, duration, inView, children,
+}: {
+  abbr: string; label: string; cx: number; cy: number;
+  orbitR: number; color: string; duration: number;
+  inView: boolean; children: OEMChild[];
+}) {
+  const PARENT_R = 26;
+  const CHILD_R  = 17;
   return (
-    <svg viewBox="-120 -120 240 240" className="h-full w-full">
-      <g style={ORBITAL_SPIN}>
-        {ORBITAL_NODES.map((node, i) => {
-          const rad = (node.angle * Math.PI) / 180;
-          const x = Math.cos(rad) * ORBITAL_R;
-          const y = Math.sin(rad) * ORBITAL_R;
-          return (
-            <g key={node.label}>
-              <motion.path
-                d={`M 0 0 L ${x} ${y}`}
-                stroke="rgba(37,99,235,0.18)"
-                strokeWidth={1}
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={active ? { pathLength: 1 } : {}}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.55 }}
-              />
-              <g transform={`translate(${x},${y})`}>
-                <motion.circle
-                  r={19}
-                  fill="rgba(37,99,235,0.05)"
-                  stroke="rgba(37,99,235,0.18)"
-                  strokeWidth={1}
-                  initial={{ scale: 0 }}
-                  animate={active ? { scale: 1 } : {}}
-                  transition={{
-                    delay: 0.3 + i * 0.1,
-                    duration: 0.35,
-                    ease: EASE_PREMIUM,
-                  }}
-                />
-                <g style={ORBITAL_COUNTER}>
-                  <motion.text
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize={6.5}
-                    fontWeight={600}
-                    fill="rgba(15,23,42,0.65)"
-                    fontFamily="ui-monospace, monospace"
-                    initial={{ opacity: 0 }}
-                    animate={active ? { opacity: 1 } : {}}
-                    transition={{ delay: 0.55 + i * 0.1 }}
-                  >
-                    {node.label}
-                  </motion.text>
-                </g>
+    <>
+      {/* Dashed orbit ring */}
+      <circle cx={cx} cy={cy} r={orbitR}
+        fill="none" stroke="rgba(147,197,253,0.5)" strokeWidth={1.5} strokeDasharray="3 2" />
+
+      {/* Pulsing glow around parent */}
+      <motion.circle cx={cx} cy={cy} r={PARENT_R + 8}
+        fill="none" stroke={`${color}28`} strokeWidth={2.5}
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+        animate={inView ? { scale: [1, 1.18, 1], opacity: [0.25, 1, 0.25] } : {}}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Parent OEM circle */}
+      <circle cx={cx} cy={cy} r={PARENT_R}
+        fill="white" stroke={`${color}35`} strokeWidth={2}
+      />
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle"
+        fontSize={11} fontWeight={800} fill={color} fontFamily="Inter,ui-sans-serif">
+        {abbr}
+      </text>
+
+      {/* Orbital group */}
+      <g transform={`translate(${cx},${cy})`}>
+        <motion.g
+          style={{ transformBox: "fill-box", transformOrigin: "center" }}
+          animate={inView ? { rotate: 360 } : { rotate: 0 }}
+          transition={{ duration, repeat: Infinity, ease: "linear" }}
+        >
+          {children.map((child, i) => {
+            const ang = (i / children.length) * 2 * Math.PI - Math.PI / 2;
+            const x   = Math.cos(ang) * orbitR;
+            const y   = Math.sin(ang) * orbitR;
+            return (
+              <g key={child.abbr}>
+                <line x1={0} y1={0} x2={x} y2={y}
+                  stroke="rgba(147,197,253,0.35)" strokeWidth={0.8} strokeDasharray="3 2" />
+                <motion.g
+                  style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                  animate={inView ? { rotate: -360 } : { rotate: 0 }}
+                  transition={{ duration, repeat: Infinity, ease: "linear" }}
+                >
+                  <circle cx={x} cy={y} r={CHILD_R}
+                    fill="white" stroke="#dbeafe" strokeWidth={1.5} />
+                  <text x={x} y={y} textAnchor="middle" dominantBaseline="middle"
+                    fontSize={8.5} fontWeight={700} fill="#334155"
+                    fontFamily="Inter,ui-sans-serif">
+                    {child.abbr}
+                  </text>
+                </motion.g>
               </g>
-            </g>
-          );
-        })}
+            );
+          })}
+        </motion.g>
       </g>
 
-      <motion.circle
-        r={36}
-        fill="none"
-        stroke="rgba(34,211,238,0.1)"
-        strokeWidth={16}
-        vectorEffect="non-scaling-stroke"
-        style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.circle
-        cx={0}
-        cy={0}
-        r={36}
-        fill="rgba(34,211,238,0.07)"
-        stroke="rgba(34,211,238,0.45)"
-        strokeWidth={1.5}
-        vectorEffect="non-scaling-stroke"
-        style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        animate={{ scale: [1, 1.056, 1] }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <text
-        textAnchor="middle"
-        y={-5}
-        fontSize={10}
-        fontWeight={700}
-        fill="rgba(255,255,255,0.82)"
-        fontFamily="ui-monospace,monospace"
-      >
-        VW
-      </text>
-      <text
-        textAnchor="middle"
-        y={8}
-        fontSize={6.5}
-        fill="rgba(34,211,238,0.75)"
-        fontFamily="ui-monospace,monospace"
-      >
-        Group
-      </text>
-      <circle cx={26} cy={-26} r={8} fill="#3b82f6" />
-      <text
-        x={26}
-        y={-23}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={4.5}
-        fontWeight={700}
-        fill="white"
-        fontFamily="sans-serif"
-      >
-        B2B
-      </text>
-    </svg>
+      {/* Label + B2C badge */}
+      <text x={cx} y={cy + orbitR + 17}
+        textAnchor="middle" fontSize={10} fontWeight={700} fill="#1e293b"
+        fontFamily="Inter,ui-sans-serif">{label}</text>
+      <rect x={cx - 14} y={cy + orbitR + 21} width={28} height={13} rx={6.5}
+        fill={`${color}18`} />
+      <text x={cx} y={cy + orbitR + 30}
+        textAnchor="middle" dominantBaseline="middle" fontSize={8} fontWeight={700}
+        fill={color} fontFamily="Inter,ui-sans-serif">B2C</text>
+    </>
   );
 }
 
 function DetailPreview() {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-40px" });
+  const [tab, setTab] = useState<"attributes" | "schema" | "example">("attributes");
 
-  const SPECS = [
-    { label: "Contract", value: "B2B",       accent: "text-blue-500"  },
-    { label: "OEMs",     value: "6+",         accent: "text-brand"     },
-    { label: "API",      value: "v1",         accent: "text-fg"        },
-    { label: "Status",   value: "AVAILABLE",  accent: "text-green-500" },
+  const ATTRS = [
+    { name: "unit",      type: "string" },
+    { name: "value",     type: "number" },
+    { name: "timestamp", type: "string" },
   ];
 
+  const BMW_CHILDREN:   OEMChild[] = [{ abbr: "RR",  name: "Rolls-Royce" }, { abbr: "MINI", name: "MINI" }];
+  const STELL_CHILDREN: OEMChild[] = [{ abbr: "FI",  name: "Fiat" }, { abbr: "OP", name: "Opel" }, { abbr: "JP", name: "Jeep" }, { abbr: "AR", name: "Alfa" }];
+
   return (
-    <div ref={ref} className="flex h-full flex-col overflow-hidden">
+    <div ref={ref} className="flex h-full flex-col overflow-hidden bg-surface text-fg">
 
-      {/* Selected item hero */}
-      <div className="shrink-0 border-b border-border bg-gradient-to-br from-brand-subtle/60 to-surface px-5 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm"
-              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", boxShadow: "0 4px 14px rgba(37,99,235,0.30)" }}
+      {/* Header bar */}
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-base px-4 py-2.5">
+        <div className="flex items-center gap-1">
+          <ChevronLeft className="h-3 w-3 shrink-0 text-brand" />
+          <span className="text-[10px] font-medium text-brand">Data Catalog</span>
+          <span className="px-0.5 text-[10px] text-fg-subtle">/</span>
+          <span className="flex items-center gap-1.5 text-[10px] font-medium text-fg-muted">
+            <Battery className="h-3 w-3 text-brand/60" />
+            Battery Care Mode
+          </span>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          className="shrink-0 rounded-lg bg-brand px-2.5 py-1 text-[9px] font-bold text-white"
+          style={{ boxShadow: "0 3px 8px rgba(37,99,235,.30)" }}
+        >
+          ▶ Request
+        </motion.button>
+      </div>
+
+      {/* MANUFACTURERS — flex-1, SVG orbital */}
+      <div className="flex min-h-0 flex-1 flex-col border-b border-border px-4 py-2">
+        <p className="mb-1 shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] text-fg-subtle">⊞ Manufacturers</p>
+        <div className="min-h-0 flex-1">
+          {/* Single SVG — both orbital groups share one coordinate system.
+              viewBox tuned so each group has breathing room. */}
+          <svg viewBox="0 0 290 185" className="h-full w-full" style={{ overflow: "visible" }}>
+            <OEMOrbitSVG
+              abbr="BMW" label="BMW" color="#1d4ed8"
+              cx={70} cy={82} orbitR={52} duration={10}
+              inView={inView} children={BMW_CHILDREN}
+            />
+            <OEMOrbitSVG
+              abbr="ST" label="Stellantis" color="#7c3aed"
+              cx={215} cy={82} orbitR={58} duration={16}
+              inView={inView} children={STELL_CHILDREN}
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* TECHNICAL INFO — static, shrink-0 */}
+      <div className="flex shrink-0 flex-col px-4 pb-3 pt-2.5">
+        <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-fg-subtle">↻ Technical Info</p>
+
+        {/* Tabs */}
+        <div className="mb-2 flex border-b border-border">
+          {(["attributes", "schema", "example"] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "pb-1.5 pr-4 text-[11px] font-semibold transition-colors duration-200",
+                tab === t ? "border-b-2 border-brand text-brand" : "border-b-2 border-transparent text-fg-subtle",
+              )}
             >
-              <Battery className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-[14px] font-extrabold leading-tight text-fg">Battery Care Mode</p>
-              <div className="mt-1.5 flex items-center gap-1.5">
-                <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-600">● AVAILABLE</span>
-                <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-600">B2B</span>
-                <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold text-orange-500">B2C</span>
+              {t === "schema" ? "JSON Schema" : t === "example" ? "JSON Example" : "Attributes"}
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {tab === "attributes" && (
+            <motion.div key="attributes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <div className="overflow-hidden rounded-xl border border-border">
+                <div className="grid grid-cols-[1fr_58px_46px] gap-2 border-b border-border bg-base px-3 py-1.5">
+                  {["NAME", "TYPE", "REQ"].map(h => (
+                    <span key={h} className="font-mono text-[9px] uppercase tracking-widest text-fg-subtle">{h}</span>
+                  ))}
+                </div>
+                {ATTRS.map((a, i) => (
+                  <div key={a.name} className={cn("grid grid-cols-[1fr_58px_46px] items-center gap-2 px-3 py-2", i < ATTRS.length - 1 && "border-b border-border/50")}>
+                    <span className="font-mono text-[11px] font-bold text-fg">{a.name}</span>
+                    <span className={cn("font-mono text-[11px] font-semibold", a.type === "number" ? "text-orange-500" : "text-blue-500")}>{a.type}</span>
+                    <span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-center font-mono text-[9px] font-bold text-green-600">✓</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.04, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
-            whileTap={{ scale: 0.97 }}
-            className="shrink-0 rounded-xl bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-sm"
-            style={{ boxShadow: "0 4px 14px rgba(37,99,235,0.30)" }}
-          >
-            ▶ Request
-          </motion.button>
-        </div>
+            </motion.div>
+          )}
 
-        {/* API slug */}
-        <div className="mt-3 flex items-center justify-between rounded-xl border border-brand/15 bg-base px-3 py-2">
-          <code className="font-mono text-[11px] text-brand/80">caruso.api / battery-care-mode</code>
-          <Copy className="h-3.5 w-3.5 text-fg-subtle hover:text-brand cursor-pointer" />
-        </div>
-      </div>
+            {tab === "schema" && (
+              <motion.div key="schema" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <div className="overflow-hidden rounded-xl border border-border">
+                  {/* Header — matches real CARUSO JSON view */}
+                  <div className="flex items-center gap-1.5 border-b border-border bg-[#f8fafc] px-3 py-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <span className="font-mono text-[9px] font-semibold text-slate-500">JSON</span>
+                    <span className="font-mono text-[9px] text-slate-400">│ 13 lines</span>
+                    <Copy className="ml-auto h-2.5 w-2.5 cursor-pointer text-slate-400" />
+                  </div>
+                  {/* Light-theme code with line numbers */}
+                  <div className="bg-white py-1.5">
+                    {([
+                      [<span className="text-slate-600">{"{"}</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"type"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"object"</span>, <span className="text-slate-500">,</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"title"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"Battery Care Mode"</span>, <span className="text-slate-500">,</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"required"</span>, <span className="text-slate-500">: [</span>, <span className="text-emerald-600">"value"</span>, <span className="text-slate-500">, </span>, <span className="text-emerald-600">"unit"</span>, <span className="text-slate-500">, </span>, <span className="text-emerald-600">"timestamp"</span>, <span className="text-slate-500">],</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"properties"</span>, <span className="text-slate-500">: {"{"}</span>],
+                      [<span className="text-slate-400">{"    "}</span>, <span className="text-teal-600">"unit"</span>, <span className="text-slate-500">: {"{"}</span>],
+                      [<span className="text-slate-400">{"      "}</span>, <span className="text-teal-600">"type"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"string"</span>, <span className="text-slate-500">, </span>, <span className="text-teal-600">"enum"</span>, <span className="text-slate-500">: [</span>, <span className="text-emerald-600">"kWh"</span>, <span className="text-slate-500">]</span>],
+                      [<span className="text-slate-400">{"    "}</span>, <span className="text-slate-500">{"}, "}</span>, <span className="text-teal-600">"value"</span>, <span className="text-slate-500">{": { "}</span>, <span className="text-teal-600">"type"</span>, <span className="text-slate-500">: </span>, <span className="text-orange-500">&#34;number&#34;</span>, <span className="text-slate-500">{" }"}</span>],
+                      [<span className="text-slate-400">{"    "}</span>, <span className="text-teal-600">"timestamp"</span>, <span className="text-slate-500">: {"{"}</span>],
+                      [<span className="text-slate-400">{"      "}</span>, <span className="text-teal-600">"type"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"string"</span>, <span className="text-slate-500">,</span>],
+                      [<span className="text-slate-400">{"      "}</span>, <span className="text-teal-600">"format"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"date-time"</span>],
+                      [<span className="text-slate-400">{"    "}</span>, <span className="text-slate-500">{"}"}</span>],
+                      [<span className="text-slate-500">{"  } }"}</span>],
+                    ] as React.ReactNode[][]).map((parts, i) => (
+                      <div key={i} className="flex items-baseline">
+                        <span className="w-7 shrink-0 select-none pr-2 text-right font-mono text-[8px] text-slate-300">{i + 1}</span>
+                        <span className="font-mono text-[9.5px] leading-[1.6]">{parts}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-      {/* OEM Orbital */}
-      <div className="min-h-0 flex-1 px-3 py-1">
-        <OEMOrbital active={inView} />
-      </div>
-
-      {/* Specs bar */}
-      <div className="shrink-0 grid grid-cols-4 divide-x divide-border border-t border-border">
-        {SPECS.map(({ label, value, accent }) => (
-          <div key={label} className="px-2 py-3 text-center">
-            <p className="font-mono text-[9px] uppercase tracking-widest text-fg-subtle">{label}</p>
-            <p className={cn("mt-0.5 truncate text-[12px] font-extrabold", accent)}>{value}</p>
-          </div>
-        ))}
+            {tab === "example" && (
+              <motion.div key="example" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <div className="overflow-hidden rounded-xl border border-border">
+                  <div className="flex items-center gap-1.5 border-b border-border bg-[#f8fafc] px-3 py-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <span className="font-mono text-[9px] font-semibold text-slate-500">JSON</span>
+                    <span className="font-mono text-[9px] text-slate-400">│ 5 lines</span>
+                    <Copy className="ml-auto h-2.5 w-2.5 cursor-pointer text-slate-400" />
+                  </div>
+                  <div className="bg-white py-1.5">
+                    {([
+                      [<span className="text-slate-600">{"{"}</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"unit"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"kWh"</span>, <span className="text-slate-500">,</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"value"</span>, <span className="text-slate-500">: </span>, <span className="text-orange-500">2.4</span>, <span className="text-slate-500">,</span>],
+                      [<span className="text-slate-400">{"  "}</span>, <span className="text-teal-600">"timestamp"</span>, <span className="text-slate-500">: </span>, <span className="text-emerald-600">"2024-12-01T10:30:00Z"</span>],
+                      [<span className="text-slate-600">{"}"}</span>],
+                    ] as React.ReactNode[][]).map((parts, i) => (
+                      <div key={i} className="flex items-baseline">
+                        <span className="w-7 shrink-0 select-none pr-2 text-right font-mono text-[8px] text-slate-300">{i + 1}</span>
+                        <span className="font-mono text-[9.5px] leading-[1.6]">{parts}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
       </div>
     </div>
   );
@@ -597,6 +649,26 @@ function DetailPreview() {
 // ─────────────────────────────────────────────
 // Card 3 — Shopping Cart
 // ─────────────────────────────────────────────
+
+const ITEM_ACCENT_COLORS = ["#2563EB", "#06B6D4", "#7C3AED"] as const;
+const CONFETTI_ANGLES    = [0, 45, 90, 135, 180, 225, 270, 315] as const;
+const CONFETTI_COLORS    = ["#2563EB","#06B6D4","#22c55e","#a855f7","#f59e0b","#ec4899","#6366f1","#14b8a6"] as const;
+
+function BagIllustration() {
+  return (
+    <svg viewBox="0 0 80 90" className="h-[88px] w-20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Handle arch */}
+      <path d="M26 32 C26 16 54 16 54 32" stroke="rgba(147,197,253,0.75)" strokeWidth="3" strokeLinecap="round" />
+      {/* Bag body — dashed border */}
+      <rect x="10" y="29" width="60" height="50" rx="10"
+        stroke="rgba(191,219,254,0.7)" strokeWidth="2.5" strokeDasharray="5 3"
+        fill="rgba(219,234,254,0.15)" />
+      {/* Dashed content lines */}
+      <line x1="22" y1="50" x2="58" y2="50" stroke="rgba(191,219,254,0.55)" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+      <line x1="22" y1="61" x2="50" y2="61" stroke="rgba(191,219,254,0.4)"  strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function CartPreview() {
   const ref    = useRef<HTMLDivElement>(null);
@@ -616,105 +688,157 @@ function CartPreview() {
   }, [inView]);
 
   return (
-    <div ref={ref} className="flex h-full flex-col overflow-hidden">
+    <div ref={ref} className="flex h-full flex-col overflow-hidden bg-surface text-fg">
 
-      {/* Cart header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-border bg-gradient-to-r from-brand-subtle/40 to-surface px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <div className="rounded-xl bg-brand-subtle p-2">
-            <ShoppingCart className="h-4.5 w-4.5 text-brand" style={{ width: "1.125rem", height: "1.125rem" }} />
-          </div>
-          <span className="text-[15px] font-extrabold text-fg">Shopping Bag</span>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={items.length}
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.6, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-brand font-mono text-[10px] font-bold text-white"
+      {/* Tabs header — exactly like real CARUSO cart */}
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-5 pt-1">
+        <div className="flex">
+          {(["requests", "orders"] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "flex items-center gap-1.5 px-1 pb-3 pt-3.5 text-[13px] font-semibold mr-5 transition-colors",
+                tab === t ? "border-b-2 border-brand text-brand" : "border-b-2 border-transparent text-fg-subtle",
+              )}
             >
-              {items.length}
-            </motion.span>
-          </AnimatePresence>
+              {t === "requests" ? <><ShoppingCart className="h-3.5 w-3.5" />My Requests</> : <><Clock className="h-3.5 w-3.5" />Orders</>}
+            </button>
+          ))}
         </div>
-        <X className="h-4 w-4 cursor-pointer text-fg-subtle hover:text-fg" />
-      </div>
-
-      {/* Tabs */}
-      <div className="flex shrink-0 border-b border-border">
-        {(["requests", "orders"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "flex-1 py-2.5 text-[12px] font-semibold transition-colors",
-              tab === t ? "border-b-2 border-brand text-brand" : "text-fg-subtle hover:text-fg-muted",
-            )}
-          >
-            {t === "requests" ? "My Requests" : "Orders"}
-          </button>
-        ))}
+        <X className="h-4 w-4 cursor-pointer text-fg-subtle" />
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           {tab === "requests" && (
             <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex h-full flex-col">
+
               {ordered ? (
-                <div className="flex h-full flex-col items-center justify-center gap-3">
+                /* ── Order confirmed ── */
+                <div className="relative flex h-full flex-col items-center justify-center gap-3 overflow-hidden">
+                  {/* Confetti burst */}
+                  {CONFETTI_ANGLES.map((angle, i) => {
+                    const rad = (angle * Math.PI) / 180;
+                    return (
+                      <motion.div
+                        key={i}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute h-2 w-2 rounded-full"
+                        style={{ left: "50%", top: "40%", marginLeft: -4, marginTop: -4, background: CONFETTI_COLORS[i % CONFETTI_COLORS.length] }}
+                        initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                        animate={{ opacity: 0, x: Math.cos(rad) * 68, y: Math.sin(rad) * 68, scale: 0 }}
+                        transition={{ duration: 0.72, delay: 0.1 + i * 0.05, ease: "easeOut" }}
+                      />
+                    );
+                  })}
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    initial={{ scale: 0 }} animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/15"
                     style={{ boxShadow: "0 0 0 1px rgba(34,197,94,0.25), 0 8px 24px rgba(34,197,94,0.15)" }}
                   >
                     <Check className="h-7 w-7 text-green-500" />
                   </motion.div>
-                  <p className="text-[15px] font-bold text-fg">Order placed!</p>
-                  <p className="text-[12px] text-fg-muted">Saved to order history</p>
+                  <div className="text-center">
+                    <p className="text-[17px] font-bold text-fg">Order placed!</p>
+                    <p className="mt-0.5 text-[13px] text-fg-muted">Access granted immediately</p>
+                    <motion.span
+                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand-subtle px-3 py-1 font-mono text-[12px] font-bold text-brand"
+                    >
+                      <Check className="h-3 w-3" />ORDER #20241201
+                    </motion.span>
+                  </div>
                 </div>
+
               ) : items.length === 0 ? (
-                <div className="flex h-full items-center justify-center">
-                  <p className="text-[13px] text-fg-subtle">Your bag is empty</p>
-                </div>
-              ) : (
-                <>
-                  <div className="min-h-0 flex-1 space-y-2.5 overflow-hidden px-4 py-4">
-                    <AnimatePresence>
-                      {items.map((item) => (
+                /* ── Empty bag — matches real CARUSO design ── */
+                <div className="flex h-full flex-col items-center justify-between px-5 pb-4 pt-6">
+                  <div className="flex flex-1 flex-col items-center justify-center gap-4">
+                    {/* Bag illustration with pulsing corner dots */}
+                    <div className="relative">
+                      {([[-30,-12],[30,-12],[-30,20],[30,20]] as [number,number][]).map(([x, y], i) => (
                         <motion.div
-                          key={item.id}
-                          layout
-                          initial={{ opacity: 0, x: 24 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -24, height: 0, marginBottom: 0 }}
-                          transition={{ duration: 0.28 }}
-                          className="flex items-center justify-between rounded-2xl border border-border bg-base px-4 py-3 shadow-sm"
-                        >
-                          <div>
-                            <p className="text-[13px] font-semibold text-fg">{item.title}</p>
-                            <p className="mt-0.5 text-[11px] text-fg-subtle">{item.price}</p>
-                          </div>
-                          <X className="h-3.5 w-3.5 cursor-pointer text-fg-subtle hover:text-fg" />
-                        </motion.div>
+                          key={i}
+                          aria-hidden="true"
+                          className="pointer-events-none absolute h-1.5 w-1.5 rounded-full bg-brand/30"
+                          style={{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${y}px)`, marginLeft: -3, marginTop: -3 }}
+                          animate={{ opacity: [0.2, 0.75, 0.2] }}
+                          transition={{ duration: 2.8, repeat: Infinity, delay: i * 0.5 }}
+                        />
                       ))}
+                      <BagIllustration />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[16px] font-bold text-fg">Oops. Your Shopping Bag is Empty</p>
+                      <p className="mt-1 text-[13px] leading-snug text-fg-muted">Add data items from the catalog to get started.</p>
+                    </div>
+                  </div>
+                  {/* Browse button pinned to bottom */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                    className="w-full rounded-2xl bg-brand py-3 text-[14px] font-bold text-white"
+                    style={{ boxShadow: "0 4px 16px rgba(37,99,235,0.35)" }}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <ShoppingCart className="h-4 w-4" />Browse Data Catalog
+                    </span>
+                  </motion.button>
+                </div>
+
+              ) : (
+                /* ── Items in cart ── */
+                <>
+                  <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-4 py-3">
+                    <AnimatePresence>
+                      {items.map((item) => {
+                        const accent = ITEM_ACCENT_COLORS[(item.id - 1) % ITEM_ACCENT_COLORS.length];
+                        return (
+                          <motion.div
+                            key={item.id}
+                            layout
+                            initial={{ opacity: 0, x: 24 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -24, height: 0, marginBottom: 0 }}
+                            transition={{ duration: 0.28 }}
+                            className="flex items-center overflow-hidden rounded-2xl border border-border bg-base shadow-sm"
+                          >
+                            {/* Colored accent bar on left edge */}
+                            <div className="h-full w-1 shrink-0 self-stretch" style={{ background: accent }} />
+                            <div className="min-w-0 flex-1 py-3 pl-3 pr-1">
+                              <p className="truncate text-[14px] font-semibold text-fg">{item.title}</p>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span className="rounded-md px-2 py-0.5 font-mono text-[11px] font-bold" style={{ background: `${accent}18`, color: accent }}>
+                                  {item.price}
+                                </span>
+                                <span className="font-mono text-[11px] text-fg-subtle">· 1 token</span>
+                              </div>
+                            </div>
+                            <X className="mr-4 h-3.5 w-3.5 shrink-0 cursor-pointer text-fg-subtle" />
+                          </motion.div>
+                        );
+                      })}
                     </AnimatePresence>
                   </div>
 
+                  {/* Total + Order button */}
                   <div className="shrink-0 border-t border-border px-4 pb-4 pt-3">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[12px] text-fg-muted">Total</span>
-                      <span className="text-[18px] font-extrabold text-fg">{items.length}.00 EUR</span>
+                    <div className="mb-3 rounded-xl border border-border bg-base/60 px-3 py-2">
+                      <div className="flex items-center justify-between text-[12px] text-fg-subtle">
+                        <span>Subtotal ({items.length} item{items.length !== 1 ? "s" : ""})</span>
+                        <span>{items.length}.00 EUR</span>
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between border-t border-border/50 pt-1.5">
+                        <span className="text-[14px] font-bold text-fg">Total</span>
+                        <span className="font-mono text-[19px] font-extrabold text-fg">{items.length}.00 EUR</span>
+                      </div>
                     </div>
                     <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="relative w-full overflow-hidden rounded-2xl bg-brand py-3 text-[13px] font-bold text-white"
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      className="relative w-full overflow-hidden rounded-2xl bg-brand py-3 text-[14px] font-bold text-white"
                       style={{ boxShadow: "0 4px 20px rgba(37,99,235,0.30)" }}
                     >
-                      {/* Glow pulse via opacity (compositor-only) */}
                       <motion.span
                         aria-hidden="true"
                         className="pointer-events-none absolute inset-0 rounded-2xl"
@@ -731,23 +855,35 @@ function CartPreview() {
           )}
 
           {tab === "orders" && (
-            <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-4">
-              <div className="rounded-2xl border border-border bg-base p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] font-bold text-fg">Order #001</span>
-                  <span className="text-[14px] font-extrabold text-brand">3.00 EUR</span>
+            <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-y-auto p-4 [scrollbar-width:none]">
+              <div className="overflow-hidden rounded-2xl border border-border bg-base shadow-sm">
+                {/* Order header */}
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <div>
+                    <p className="text-[15px] font-bold text-fg">Order #001</p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className="rounded-full bg-green-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-green-600">✓ COMPLETED</span>
+                      <span className="flex items-center gap-1 text-[12px] text-fg-subtle"><Clock className="h-3 w-3" />just now</span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[18px] font-extrabold text-brand">3.00 EUR</span>
                 </div>
-                <div className="mt-3 space-y-1.5">
-                  {CART_ITEMS.map((item) => (
-                    <p key={item.id} className="text-[12px] text-fg-muted">· {item.title}</p>
-                  ))}
+                {/* Line items */}
+                <div className="divide-y divide-border/50 px-4">
+                  {CART_ITEMS.map((item, i) => {
+                    const accent = ITEM_ACCENT_COLORS[i % ITEM_ACCENT_COLORS.length];
+                    return (
+                      <div key={item.id} className="flex items-center gap-2.5 py-2.5">
+                        <div className="h-2 w-2 shrink-0 rounded-full" style={{ background: accent }} />
+                        <p className="min-w-0 flex-1 truncate text-[13px] text-fg-muted">{item.title}</p>
+                        <span className="font-mono text-[12px] text-fg-subtle">{item.price}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-                  <Clock className="h-3.5 w-3.5 text-fg-subtle" />
-                  <span className="text-[11px] text-fg-subtle">just now</span>
-                  <span className="ml-auto rounded-full bg-green-500/15 px-2.5 py-0.5 text-[10px] font-bold text-green-600">
-                    COMPLETED
-                  </span>
+                {/* Access banner */}
+                <div className="border-t border-green-500/20 bg-green-500/5 px-4 py-2.5 text-center">
+                  <p className="text-[12px] font-semibold text-green-600">✓ Data access granted · API key active</p>
                 </div>
               </div>
             </motion.div>
@@ -889,11 +1025,34 @@ export function FeatureBentoGrid() {
             <MacOSBar label="caruso · item-detail" />
             <div className="pointer-events-none absolute -left-12 top-8 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
-              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Item Detail</span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">OEM Deep-Dive</h3>
-              <p className="text-[11px] text-fg-muted">Orbital hub · Specs card · JSON Schema · Attributes</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                    Item Detail
+                  </span>
+                  <h3 className="mt-2.5 text-xl font-extrabold tracking-tight text-fg">
+                    OEM{" "}
+                    <span style={{ background: "linear-gradient(to right, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                      Deep-Dive
+                    </span>
+                  </h3>
+                  <p className="mt-0.5 text-[11px] text-fg-muted">Specs card · JSON Schema · Attributes</p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
+                  {[
+                    { value: "6+",  label: "OEMs"    },
+                    { value: "B2C", label: "Channel"  },
+                  ].map(({ value, label }) => (
+                    <div key={label} className="flex items-center gap-2 rounded-xl border border-border bg-base px-3 py-1.5 shadow-sm">
+                      <span className="text-[13px] font-extrabold text-brand">{value}</span>
+                      <span className="text-[10px] text-fg-muted">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="mx-5 mt-3 h-px shrink-0 bg-border" />
+            <div className="mx-5 mt-3 h-px shrink-0 bg-gradient-to-r from-brand/20 via-border to-transparent" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <DetailPreview />
             </div>
@@ -910,11 +1069,34 @@ export function FeatureBentoGrid() {
             <MacOSBar label="caruso · shopping-cart" />
             <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
-              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand/60">Request System</span>
-              <h3 className="mt-0.5 text-base font-extrabold tracking-tight text-fg">Shopping Cart</h3>
-              <p className="text-[11px] text-fg-muted">localStorage persistence · UUID items · order history</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                    Request System
+                  </span>
+                  <h3 className="mt-2.5 text-xl font-extrabold tracking-tight text-fg">
+                    Shopping{" "}
+                    <span style={{ background: "linear-gradient(to right, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                      Cart
+                    </span>
+                  </h3>
+                  <p className="mt-0.5 text-[11px] text-fg-muted">UUID items · Order history · API access</p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
+                  {[
+                    { value: "UUID", label: "Items"  },
+                    { value: "API",  label: "Access"  },
+                  ].map(({ value, label }) => (
+                    <div key={label} className="flex items-center gap-2 rounded-xl border border-border bg-base px-3 py-1.5 shadow-sm">
+                      <span className="text-[13px] font-extrabold text-brand">{value}</span>
+                      <span className="text-[10px] text-fg-muted">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="mx-5 mt-3 h-px shrink-0 bg-border" />
+            <div className="mx-5 mt-3 h-px shrink-0 bg-gradient-to-r from-brand/20 via-border to-transparent" />
             <div className="min-h-0 flex-1 overflow-hidden">
               <CartPreview />
             </div>
