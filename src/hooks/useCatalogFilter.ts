@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { DataItem } from "../data/catalog";
 
-export type SortKey = "popularity" | "az" | "za" | "status";
+export type SortKey = "popularity" | "az" | "za" | "newest";
 
 export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "popularity",  label: "Popularity"       },
   { value: "az",          label: "Alphabetical A–Z"  },
   { value: "za",          label: "Alphabetical Z–A"  },
-  { value: "status",      label: "Available first"   },
+  { value: "newest",      label: "Newest first"      },
 ];
 
 export function useCatalogFilter(items: DataItem[]) {
@@ -38,7 +38,7 @@ export function useCatalogFilter(items: DataItem[]) {
     switch (sortBy) {
       case "az":     result.sort((a, b) => a.title.localeCompare(b.title)); break;
       case "za":     result.sort((a, b) => b.title.localeCompare(a.title)); break;
-      case "status": result.sort(a => (a.status === "AVAILABLE" ? -1 : 1));  break;
+      case "newest": result.reverse(); break;
     }
 
     return result;
