@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Home, Database, BarChart3, Map, Users, Layers } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { EASE_PREMIUM, springSnappy } from "../../lib/motion";
+import { EASE_PREMIUM } from "../../lib/motion";
 
 const NAV_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
   { label: "Home",          href: "#home",     Icon: Home      },
