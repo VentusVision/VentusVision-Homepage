@@ -238,7 +238,7 @@ export function TechStackSection() {
 
           {/* Left: OEM Sources */}
           <div className="flex w-[220px] shrink-0 flex-col gap-2">
-            <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Datenquellen · JSON</p>
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Data Sources · JSON</p>
             {DATA_SOURCES.map((src, i) => (
               <SourceCard key={src.name} {...src} delay={0.08 + i * 0.06} inView={inView} />
             ))}

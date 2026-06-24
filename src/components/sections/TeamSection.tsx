@@ -8,7 +8,7 @@ import { SectionBadge } from "../ui/SectionBadge";
 const TEAM = [
   { name: "Dennis",  role: "Sprint Planner · Developer",  from: "#2563EB", to: "#06B6D4", angle: -90 },
   { name: "Tim",     role: "Scrum Organizer · Developer", from: "#7C3AED", to: "#A855F7", angle: -18 },
-  { name: "Janick",  role: "Developer",        from: "#0891B2", to: "#22D3EE", angle:  54 },
+  { name: "Janick",  role: "Quality Assurance · Developer", from: "#0891B2", to: "#22D3EE", angle:  54 },
   { name: "Obai",    role: "Developer",        from: "#1D4ED8", to: "#818CF8", angle: 126 },
   { name: "Vincent", role: "Developer",        from: "#0369A1", to: "#38BDF8", angle: 198 },
 ] as const;
@@ -131,7 +131,7 @@ function Constellation({ inView }: { inView: boolean }) {
           <motion.div
             key={m.name}
             className="absolute flex flex-col items-center"
-            style={{ left: x - 56, top: y - 44, width: 112 }}
+            style={{ left: x - 76, top: y - 44, width: 152 }}
             initial={{ scale: 0, opacity: 0 }}
             animate={inView ? { scale: 1, opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.4 + i * 0.1, ease: EASE_PREMIUM }}
@@ -151,7 +151,7 @@ function Constellation({ inView }: { inView: boolean }) {
 
             {/* Name + role */}
             <p
-              className="mt-2.5 text-[13px] font-extrabold tracking-tight"
+              className="mt-2.5 text-[16px] font-extrabold tracking-tight"
               style={{
                 background: `linear-gradient(135deg, ${m.from}, ${m.to})`,
                 WebkitBackgroundClip: "text",
@@ -164,7 +164,7 @@ function Constellation({ inView }: { inView: boolean }) {
               {m.role.split(" · ").map(r => (
                 <span
                   key={r}
-                  className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+                  className="whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white"
                   style={{ background: `linear-gradient(135deg, ${m.from}cc, ${m.to}cc)` }}
                 >
                   {r}
@@ -216,23 +216,23 @@ export function TeamSection() {
             transition={{ duration: 0.7, delay: 0.1, ease: EASE_PREMIUM }}
           >
             <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
-              Wer steckt <span className="text-brand">dahinter?</span>
+              Who is <span className="text-brand">behind it?</span>
             </h2>
 
             <p className="mt-6 text-lg leading-relaxed text-fg-muted">
-              Dieses Projekt entstand im Rahmen des{" "}
-              <span className="font-semibold text-fg">Software Engineering Projekts (SEP)</span>
-              {" "}– einem praxisorientierten Teamprojekt im Informatikstudium. Fünf Studierende der{" "}
-              <span className="font-semibold text-fg">Hochschule Mannheim</span> haben den CARUSO
-              Data Marketplace als vollständigen B2B-Prototyp für den Fahrzeugdaten-Marktplatz entwickelt.
+              This project was created as part of the{" "}
+              <span className="font-semibold text-fg">Software Engineering Project (SEP)</span>
+              {" "}– a practice-oriented team project in the computer science program. Five students from{" "}
+              <span className="font-semibold text-fg">Hochschule Mannheim</span> built the CARUSO
+              Data Marketplace as a complete B2B prototype for the vehicle data marketplace.
             </p>
 
             {/* Stats row */}
             <div className="mt-8 flex gap-6">
               {[
-                { value: "5",    label: "Teammitglieder" },
+                { value: "5",    label: "Team Members"    },
                 { value: "1",    label: "Semester"        },
-                { value: "B2B",  label: "Marktplatz-Typ"  },
+                { value: "B2B",  label: "Marketplace Type" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-3xl font-extrabold text-brand">{value}</p>
@@ -245,7 +245,7 @@ export function TeamSection() {
             <div className="mt-8 flex flex-wrap gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-fg-muted shadow-card">
                 <GraduationCap className="h-4 w-4 text-brand" />
-                Hochschule Mannheim · Informatik
+                Hochschule Mannheim · Computer Science
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-fg-muted shadow-card">
                 <GitBranch className="h-4 w-4 text-brand" />
