@@ -4,15 +4,15 @@ import { EASE_PREMIUM } from "../../lib/motion";
 
 const NAV = [
   {
-    heading: "Produkt",
+    heading: "Product",
     links: ["Data Catalog", "Map Explorer", "Data Explorer", "Shopping Cart"],
   },
   {
-    heading: "Plattform",
+    heading: "Platform",
     links: ["B2B API", "OEM Coverage", "Data Streams", "Pricing"],
   },
   {
-    heading: "Projekt",
+    heading: "Project",
     links: ["SEP 2026", "Hochschule Mannheim", "Team Ventus Vision", "CARUSO GmbH"],
   },
 ] as const;
@@ -79,8 +79,8 @@ export function Footer() {
 
             <h3 className="text-xl font-bold text-white">Ventus Vision</h3>
             <p className="mt-2 max-w-xs text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
-              B2B-Prototyp für den CARUSO Data Marketplace. Entwickelt im Rahmen
-              des Software Engineering Projekts an der Hochschule Mannheim.
+              B2B prototype for the CARUSO Data Marketplace. Built as part of the
+              Software Engineering Project at Hochschule Mannheim.
             </p>
 
             {/* Links */}

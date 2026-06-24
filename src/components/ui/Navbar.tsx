@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight, Home, Database, BarChart3, Map, Users, Layers } from "lucide-react";
+import { Menu, X, Home, Database, BarChart3, Map, Users, Layers } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { EASE_PREMIUM, springSnappy } from "../../lib/motion";
@@ -103,19 +103,6 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* CTA */}
-        <div className="hidden items-center md:flex">
-          <motion.a
-            href="#catalog"
-            whileHover={{ scale: 1.04, boxShadow: "0 8px 24px rgba(37,99,235,0.35)" }}
-            whileTap={{ scale: 0.97 }}
-            transition={springSnappy}
-            className="flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white shadow-brand"
-          >
-            Explore
-            <ArrowRight className="h-3.5 w-3.5" />
-          </motion.a>
-        </div>
 
         {/* Mobile toggle */}
         <button
@@ -149,13 +136,6 @@ export function Navbar() {
                   {label}
                 </a>
               ))}
-              <a
-                href="#catalog"
-                onClick={() => setMobileOpen(false)}
-                className="mt-2 rounded-full bg-brand px-5 py-2.5 text-center text-sm font-semibold text-white"
-              >
-                Explore Marketplace
-              </a>
             </div>
           </motion.div>
         )}
