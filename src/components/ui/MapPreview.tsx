@@ -246,12 +246,12 @@ export function MapPreview() {
       </div>
 
       {/* ── Sidebar ──────────────────────────────────────────── */}
-      <div className="flex w-[330px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface">
+      <div className="flex w-[190px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface sm:w-[280px] lg:w-[330px]">
 
         {/* Header */}
-        <div className="shrink-0 border-b border-border px-5 py-3.5">
+        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
           <div className="flex items-center justify-between">
-            <p className="text-[17px] font-bold tracking-tight text-brand">Map Explorer</p>
+            <p className="text-[13px] font-bold tracking-tight text-brand sm:text-[17px]">Map Explorer</p>
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
@@ -260,14 +260,14 @@ export function MapPreview() {
         </div>
 
         {/* Search */}
-        <div className="shrink-0 border-b border-border px-5 py-3.5">
-          <p className="mb-2 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Search</p>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-base px-3 py-2">
-            <Search className="h-4 w-4 shrink-0 text-fg-subtle" />
-            <span className="flex-1 font-mono text-[13px] text-fg-muted">
+        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:text-[12px]">Search</p>
+          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-base px-2.5 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
+            <Search className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
+            <span className="flex-1 font-mono text-[11px] text-fg-muted sm:text-[13px]">
               {searchText}
               <span
-                className="inline-block h-[12px] w-[1.5px] translate-y-[1px] bg-brand/70"
+                className="inline-block h-[10px] w-[1.5px] translate-y-[1px] bg-brand/70 sm:h-[12px]"
                 style={{ animation: "cursor-blink 0.55s linear infinite" }}
               />
             </span>
@@ -275,9 +275,9 @@ export function MapPreview() {
         </div>
 
         {/* Categories */}
-        <div className="shrink-0 border-b border-border px-5 py-3.5">
-          <p className="mb-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Categories</p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Categories</p>
+          <div className="flex flex-wrap gap-1">
             {CATS.map((cat, i) => {
               const isActive = i === catIdx;
               return (
@@ -289,10 +289,10 @@ export function MapPreview() {
                     color: isActive ? cat.color : "rgba(15,23,42,0.45)",
                   }}
                   transition={{ duration: 0.3 }}
-                  className="flex cursor-default items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium"
+                  className="flex cursor-default items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[12px]"
                 >
                   <span
-                    className="h-[6px] w-[6px] rounded-full transition-colors duration-300"
+                    className="h-[5px] w-[5px] rounded-full transition-colors duration-300 sm:h-[6px] sm:w-[6px]"
                     style={{ backgroundColor: isActive ? cat.color : "rgba(15,23,42,0.2)" }}
                   />
                   {cat.label}
@@ -302,10 +302,10 @@ export function MapPreview() {
           </div>
 
           {/* All / None / Grey Unassigned row */}
-          <div className="mt-3 flex items-center gap-1.5">
+          <div className="mt-2 flex items-center gap-1 sm:mt-3 sm:gap-1.5">
             {["All", "None"].map(lbl => (
               <span key={lbl}
-                className="cursor-default rounded-md border border-border bg-base px-2.5 py-1 font-mono text-[12px] text-fg-subtle">
+                className="cursor-default rounded-md border border-border bg-base px-2 py-0.5 font-mono text-[10px] text-fg-subtle sm:px-2.5 sm:py-1 sm:text-[12px]">
                 {lbl}
               </span>
             ))}
@@ -316,7 +316,7 @@ export function MapPreview() {
                 color: greyActive ? "#2563EB" : "rgba(15,23,42,0.40)",
               }}
               transition={{ duration: 0.35 }}
-              className="cursor-default rounded-md border px-2.5 py-1 font-mono text-[12px]"
+              className="cursor-default rounded-md border px-2 py-0.5 font-mono text-[10px] sm:px-2.5 sm:py-1 sm:text-[12px]"
             >
               Grey Unassigned
             </motion.span>
@@ -324,9 +324,9 @@ export function MapPreview() {
         </div>
 
         {/* Quests */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-3.5">
-          <p className="mb-2.5 shrink-0 font-mono text-[12px] uppercase tracking-[0.18em] text-fg-subtle">Quests</p>
-          <div className="flex flex-col gap-1 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5 sm:px-5 sm:py-3.5">
+          <p className="mb-2 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Quests</p>
+          <div className="flex flex-col gap-0.5 overflow-hidden sm:gap-1">
             {QUESTS.map((q, i) => {
               const isActive = i === questIdx;
               return (
@@ -337,16 +337,16 @@ export function MapPreview() {
                     borderColor: isActive ? "rgba(37,99,235,0.14)" : "transparent",
                   }}
                   transition={{ duration: 0.3 }}
-                  className="flex items-center gap-2.5 rounded-lg border px-3 py-2"
+                  className="flex items-center gap-1.5 rounded-lg border px-2 py-1.5 sm:gap-2.5 sm:px-3 sm:py-2"
                 >
-                  <Link className="h-4 w-4 shrink-0 text-fg-subtle" />
+                  <Link className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
                   <span className={cn(
-                    "flex-1 truncate text-[13px] transition-colors duration-300",
+                    "flex-1 truncate text-[11px] transition-colors duration-300 sm:text-[13px]",
                     isActive ? "font-semibold text-fg" : "text-fg-muted",
                   )}>
                     {q.label}
                   </span>
-                  <span className="shrink-0 font-mono text-[12px] text-fg-subtle">
+                  <span className="shrink-0 font-mono text-[10px] text-fg-subtle sm:text-[12px]">
                     {q.done}/{q.total}
                   </span>
                   <motion.span
@@ -363,9 +363,9 @@ export function MapPreview() {
         </div>
 
         {/* Zoom bar — thumb and fill reflect actual map scale */}
-        <div className="shrink-0 border-t border-border px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <ZoomOut className="h-4 w-4 text-fg-subtle" />
+        <div className="shrink-0 border-t border-border px-3 py-2 sm:px-5 sm:py-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <ZoomOut className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
             <div className="relative flex-1 h-[3px] rounded-full bg-border">
               {/* dynamic fill */}
               <motion.div
@@ -374,12 +374,12 @@ export function MapPreview() {
               />
               {/* thumb synced to zoomMv */}
               <motion.div
-                className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-white shadow-card"
+                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-white shadow-card sm:h-3.5 sm:w-3.5"
                 style={{ left: sliderLeft }}
               />
             </div>
-            <ZoomIn className="h-4 w-4 text-fg-subtle" />
-            <span className="w-10 text-right font-mono text-[12px] tabular-nums text-fg-muted">
+            <ZoomIn className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
+            <span className="w-8 text-right font-mono text-[10px] tabular-nums text-fg-muted sm:w-10 sm:text-[12px]">
               {zoomPct}%
             </span>
           </div>

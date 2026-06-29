@@ -74,7 +74,7 @@ export function Navbar() {
         {/* Desktop nav */}
         <nav
           aria-label="Main navigation"
-          className="hidden items-center gap-0.5 rounded-full border border-brand/15 bg-surface/70 px-1.5 py-1.5 backdrop-blur-md shadow-[0_2px_16px_rgba(37,99,235,0.08)] md:flex"
+          className="hidden items-center gap-0.5 rounded-full border border-brand/15 bg-surface/70 px-1.5 py-1.5 backdrop-blur-md shadow-[0_2px_16px_rgba(37,99,235,0.08)] lg:flex"
         >
           {NAV_LINKS.map(({ label, href, Icon }) => {
             const id = href.slice(1);
@@ -103,13 +103,12 @@ export function Navbar() {
           })}
         </nav>
 
-
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:text-fg md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:text-fg lg:hidden"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
@@ -123,7 +122,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: EASE_PREMIUM }}
-            className="overflow-hidden border-t border-border bg-surface/95 backdrop-blur-xl md:hidden"
+            className="overflow-hidden border-t border-border bg-surface/95 backdrop-blur-xl lg:hidden"
           >
             <div className="flex flex-col gap-1 px-4 py-4">
               {NAV_LINKS.map(({ label, href }) => (

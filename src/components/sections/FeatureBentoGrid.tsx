@@ -112,7 +112,7 @@ function ProductCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.34, ease: EASE_PREMIUM }}
-      className="flex h-full min-h-full flex-col rounded-xl border border-border bg-base p-5"
+      className="flex h-full min-h-full flex-col rounded-xl border border-border bg-base p-3 sm:p-5"
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-[15px] font-bold leading-snug text-fg">
@@ -221,9 +221,9 @@ export function CatalogPreview({ preview = false }: { preview?: boolean }) {
           <span className="rounded-full border border-border px-3 py-1 text-[12px] text-fg-muted">
             <SlidersHorizontal className="inline h-3.5 w-3.5 mr-1" />Filter
           </span>
-          <span className="rounded-full border border-border px-3 py-1 text-[12px] text-fg-muted">CSV</span>
+          <span className="hidden rounded-full border border-border px-3 py-1 text-[12px] text-fg-muted sm:inline">CSV</span>
           <span className={cn(
-            "rounded-full px-3.5 py-1 text-[12px] font-semibold",
+            "hidden rounded-full px-3.5 py-1 text-[12px] font-semibold sm:inline",
             highlightOn ? "bg-cyan-500/75 text-white" : "border border-border text-fg-muted"
           )}>
             Highlighting
@@ -367,10 +367,10 @@ export function CatalogPreview({ preview = false }: { preview?: boolean }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
-                className="grid grid-cols-3 gap-3"
+                className="grid grid-cols-2 gap-2 sm:gap-3 2xl:grid-cols-3"
               >
                 {filtered.map((item, i) => (
-                  <div key={item.id} className="min-h-[240px]">
+                  <div key={item.id} className="min-h-[160px] sm:min-h-[220px] lg:min-h-[240px]">
                     <ProductCard
                       {...item}
                       delay={Math.min(i * 0.025, 0.2)}
@@ -925,7 +925,7 @@ function MacOSBar({ label }: { label: string }) {
 
 export function FeatureBentoGrid() {
   return (
-    <section id="catalog" className="relative bg-base px-8 py-28">
+    <section id="catalog" className="relative bg-base px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
       <VehicleBackground iconOpacity={0.15} laneOpacity={0.15} laneSpeed={34} floatAmplitude={13} />
       <div className="relative z-[1] mx-auto max-w-[1560px]">
         <motion.div
@@ -933,7 +933,7 @@ export function FeatureBentoGrid() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6 }}
-          className="mb-16 max-w-2xl"
+          className="mb-10 max-w-2xl sm:mb-16"
         >
           <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
             Built for the way{" "}
@@ -950,7 +950,7 @@ export function FeatureBentoGrid() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.12 }}
           variants={STAGGER}
-          className="grid h-[1260px] grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:grid-rows-2"
+          className="grid grid-cols-1 gap-6 lg:h-[1260px] lg:grid-cols-[1fr_340px] lg:grid-rows-2"
         >
           {/* ── Product Catalog (col-span-3, row-span-2) ── */}
           <motion.div
@@ -958,7 +958,7 @@ export function FeatureBentoGrid() {
             whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
             style={{ boxShadow: BENTO_SHADOW }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-2"
+            className="relative flex h-[800px] flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:h-auto lg:row-span-2"
           >
             <MacOSBar label="caruso · data-catalog" />
 
@@ -968,12 +968,25 @@ export function FeatureBentoGrid() {
 
             {/* Header */}
             <div className="shrink-0 px-6 pt-5">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                    Data Catalog
-                  </span>
+                  <div className="flex items-center justify-between gap-2 sm:block">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                      Data Catalog
+                    </span>
+                    {/* Compact stats — mobile only, no border */}
+                    <div className="flex items-center gap-1 sm:hidden">
+                      <span className="text-[12px] font-extrabold text-brand">433+</span>
+                      <span className="text-[9px] text-fg-subtle">Data</span>
+                      <span className="px-0.5 text-[9px] text-fg-subtle">·</span>
+                      <span className="text-[12px] font-extrabold text-brand">10</span>
+                      <span className="text-[9px] text-fg-subtle">Kat.</span>
+                      <span className="px-0.5 text-[9px] text-fg-subtle">·</span>
+                      <span className="text-[12px] font-extrabold text-brand">8+</span>
+                      <span className="text-[9px] text-fg-subtle">OEM</span>
+                    </div>
+                  </div>
                   <h3 className="mt-3 text-2xl font-extrabold tracking-tight text-fg">
                     Discover &amp;{" "}
                     <span
@@ -991,7 +1004,7 @@ export function FeatureBentoGrid() {
                   </p>
                 </div>
                 {/* Stat chips */}
-                <div className="flex shrink-0 flex-col gap-2 pt-1">
+                <div className="hidden shrink-0 flex-col gap-2 pt-1 sm:flex">
                   {[
                     { value: "433+", label: "Data Items" },
                     { value: "10",  label: "Kategorien" },
@@ -1020,17 +1033,26 @@ export function FeatureBentoGrid() {
             whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
             style={{ boxShadow: BENTO_SHADOW }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
+            className="relative flex h-[680px] flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:h-auto lg:row-span-1"
           >
             <MacOSBar label="caruso · item-detail" />
             <div className="pointer-events-none absolute -left-12 top-8 h-48 w-48 rounded-full bg-blue-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                    Item Detail
-                  </span>
+                  <div className="flex items-center justify-between gap-2 sm:block">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                      Item Detail
+                    </span>
+                    <div className="flex items-center gap-1 sm:hidden">
+                      <span className="text-[12px] font-extrabold text-brand">6+</span>
+                      <span className="text-[9px] text-fg-subtle">OEMs</span>
+                      <span className="px-0.5 text-[9px] text-fg-subtle">·</span>
+                      <span className="text-[12px] font-extrabold text-brand">B2C</span>
+                      <span className="text-[9px] text-fg-subtle">Channel</span>
+                    </div>
+                  </div>
                   <h3 className="mt-2.5 text-xl font-extrabold tracking-tight text-fg">
                     OEM{" "}
                     <span style={{ background: "linear-gradient(to right, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -1039,7 +1061,7 @@ export function FeatureBentoGrid() {
                   </h3>
                   <p className="mt-0.5 text-[11px] text-fg-muted">Specs card · JSON Schema · Attributes</p>
                 </div>
-                <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
+                <div className="hidden shrink-0 flex-col gap-1.5 pt-0.5 sm:flex">
                   {[
                     { value: "6+",  label: "OEMs"    },
                     { value: "B2C", label: "Channel"  },
@@ -1064,17 +1086,26 @@ export function FeatureBentoGrid() {
             whileHover={{ y: -3, boxShadow: BENTO_HOVER_SHADOW }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
             style={{ boxShadow: BENTO_SHADOW }}
-            className="relative flex flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:row-span-1"
+            className="relative flex h-[580px] flex-col overflow-hidden rounded-3xl border border-brand/25 bg-surface lg:col-span-1 lg:h-auto lg:row-span-1"
           >
             <MacOSBar label="caruso · shopping-cart" />
             <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-purple-400/8 blur-[60px]" />
             <div className="shrink-0 px-5 pt-4">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                    Request System
-                  </span>
+                  <div className="flex items-center justify-between gap-2 sm:block">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-subtle px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                      Request System
+                    </span>
+                    <div className="flex items-center gap-1 sm:hidden">
+                      <span className="text-[12px] font-extrabold text-brand">UUID</span>
+                      <span className="text-[9px] text-fg-subtle">Items</span>
+                      <span className="px-0.5 text-[9px] text-fg-subtle">·</span>
+                      <span className="text-[12px] font-extrabold text-brand">API</span>
+                      <span className="text-[9px] text-fg-subtle">Access</span>
+                    </div>
+                  </div>
                   <h3 className="mt-2.5 text-xl font-extrabold tracking-tight text-fg">
                     Shopping{" "}
                     <span style={{ background: "linear-gradient(to right, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -1083,7 +1114,7 @@ export function FeatureBentoGrid() {
                   </h3>
                   <p className="mt-0.5 text-[11px] text-fg-muted">UUID items · Order history · API access</p>
                 </div>
-                <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
+                <div className="hidden shrink-0 flex-col gap-1.5 pt-0.5 sm:flex">
                   {[
                     { value: "UUID", label: "Items"  },
                     { value: "API",  label: "Access"  },

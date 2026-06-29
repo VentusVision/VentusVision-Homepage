@@ -6,6 +6,7 @@ import { MapPreview } from "../ui/MapPreview";
 import { VehicleBackground } from "../ui/VehicleBackground";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { SectionBadge } from "../ui/SectionBadge";
+import { cn } from "../../lib/utils";
 
 interface Highlight {
   id: string;
@@ -19,6 +20,8 @@ interface Highlight {
   reverse?: boolean;
   wide?: boolean;
   frameHeight?: string;
+  /** Negative horizontal margins to break the frame out of the section max-width */
+  frameBleed?: string;
 }
 
 const HIGHLIGHTS: Highlight[] = [
@@ -37,7 +40,8 @@ const HIGHLIGHTS: Highlight[] = [
     imageLabel: "Real-Time Analytics Preview",
     preview: <DataExplorerPreview />,
     wide: true,
-    frameHeight: "h-[760px]",
+    frameHeight: "h-[480px] sm:h-[640px] lg:h-[900px]",
+    frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
   },
   {
     id: "map",
@@ -55,14 +59,15 @@ const HIGHLIGHTS: Highlight[] = [
     imageLabel: "Interactive Journey Map Preview",
     preview: <MapPreview />,
     wide: true,
-    frameHeight: "h-[760px]",
+    frameHeight: "h-[480px] sm:h-[640px] lg:h-[900px]",
+    frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
   },
 ];
 
 function HighlightRow({
   id, eyebrow, title, description,
   imageLabel, imageSrc, overlay, preview,
-  reverse, wide, frameHeight,
+  reverse, wide, frameHeight, frameBleed,
 }: Highlight) {
   if (wide) {
     return (
@@ -72,7 +77,7 @@ function HighlightRow({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.7, ease: EASE_PREMIUM }}
-          className="max-w-2xl"
+          className={cn("max-w-2xl", frameBleed && "sm:-ml-10 lg:-ml-16 xl:-ml-24")}
         >
           <SectionBadge label={eyebrow} className="text-xs" />
           <h3 className="mt-5 text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
@@ -86,6 +91,7 @@ function HighlightRow({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.75, ease: EASE_PREMIUM, delay: 0.1 }}
+          className={frameBleed}
         >
           <GlowImageFrame
             src={imageSrc}
@@ -138,17 +144,17 @@ function HighlightRow({
 
 export function PlatformHighlights() {
   return (
-    <section className="relative bg-base px-6 py-28">
+    <section className="relative bg-base px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
       {/* Decorative vehicle animation layer — behind all content */}
       <VehicleBackground iconOpacity={0.14} laneOpacity={0.14} laneSpeed={38} floatAmplitude={15} />
 
-      <div className="relative z-[1] mx-auto max-w-7xl space-y-24">
+      <div className="relative z-[1] mx-auto max-w-7xl space-y-16 lg:space-y-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6 }}
-          className="max-w-2xl"
+          className="max-w-2xl sm:-ml-10 lg:-ml-16 xl:-ml-24"
         >
           <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
             Platform <span className="text-brand">Highlights</span>

@@ -14,6 +14,9 @@ const TABS = [
 
 const TAB_DURATION = 6000;
 
+const DESIGN_W = 1200;
+const DESIGN_H = 675; // 16:9
+
 // Renders children at native size then CSS-shrinks to fill the container exactly.
 function ScaledPreview({ children, scale }: { children: React.ReactNode; scale: number }) {
   return (
@@ -36,6 +39,17 @@ export function HeroTripleDash() {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px 0px" });
   const [tabIdx, setTabIdx] = useState(0);
+  const [scale,  setScale]  = useState(1);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setScale(el.offsetWidth / DESIGN_W);
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    update();
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!inView) return;
@@ -46,7 +60,11 @@ export function HeroTripleDash() {
   const activeTab = TABS[tabIdx];
 
   return (
-    <div ref={ref} className="flex h-full w-full flex-col overflow-hidden bg-base text-fg">
+    <div ref={ref} className="h-full w-full overflow-hidden">
+      <div
+        className="flex flex-col overflow-hidden bg-base text-fg"
+        style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: DESIGN_W, height: DESIGN_H }}
+      >
 
       {/* ── Tab bar ── */}
       <div className="shrink-0 border-b border-border bg-surface">
@@ -131,6 +149,7 @@ export function HeroTripleDash() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
