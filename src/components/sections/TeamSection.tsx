@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { GraduationCap, GitBranch } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { SectionBadge } from "../ui/SectionBadge";
@@ -178,6 +178,31 @@ function Constellation({ inView }: { inView: boolean }) {
   );
 }
 
+function ConstellationScaler({ inView }: { inView: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => setScale(Math.min(1, el.offsetWidth / 500));
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    update();
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="w-full">
+      <div style={{ height: `${500 * scale}px`, overflow: "hidden" }} className="flex justify-center">
+        <div style={{ transform: `scale(${scale})`, transformOrigin: "top center", flexShrink: 0 }}>
+          <Constellation inView={inView} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function TeamSection() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px 0px" });
@@ -254,14 +279,14 @@ export function TeamSection() {
             </div>
           </motion.div>
 
-          {/* Right: constellation */}
+          {/* Right: constellation — scales down on narrow containers */}
           <motion.div
             initial={{ opacity: 0, x: 32 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.2, ease: EASE_PREMIUM }}
             className="flex justify-center"
           >
-            <Constellation inView={inView} />
+            <ConstellationScaler inView={inView} />
           </motion.div>
         </div>
       </div>

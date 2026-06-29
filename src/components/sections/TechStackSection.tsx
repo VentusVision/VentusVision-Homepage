@@ -82,6 +82,47 @@ function PacketStream({ reverse = false, count = 6 }: { reverse?: boolean; count
   );
 }
 
+// ── Vertical packet stream (mobile) ───────────
+
+function PacketStreamVertical({ count = 5 }: { count?: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [h, setH] = useState(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setH(el.offsetHeight));
+    ro.observe(el);
+    setH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  const colors = ["#2563EB", "#06B6D4", "#7C3AED", "#0EA5E9", "#A855F7", "#06B6D4", "#3B82F6", "#10B981"];
+  const spread = Math.max(count - 1, 1);
+
+  return (
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-brand/15 to-transparent" />
+      {h > 0 && Array.from({ length: count }).map((_, i) => {
+        const left  = 10 + (i / spread) * 80;
+        const dur   = 1.2 + i * 0.2;
+        const delay = i * 0.28;
+        const color = colors[i % colors.length];
+        return (
+          <motion.div
+            key={i}
+            className="absolute h-2 w-2 rounded-full"
+            style={{ left: `${left}%`, background: color, boxShadow: `0 0 8px 3px ${color}77`, top: 0 }}
+            initial={{ y: -8, opacity: 0 }}
+            animate={{ y: h + 8, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: dur, repeat: Infinity, delay, ease: "linear" }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Source card (OEMs) ─────────────────────────
 
 function SourceCard({ name, abbr, from, to, delay, inView }: typeof DATA_SOURCES[0] & { delay: number; inView: boolean }) {
@@ -209,7 +250,7 @@ export function TechStackSection() {
   const inView = useInView(ref, { once: true, margin: "-80px 0px" });
 
   return (
-    <section ref={ref} id="techstack" className="relative overflow-hidden bg-base px-8 py-28">
+    <section ref={ref} id="techstack" className="relative overflow-hidden bg-base px-4 py-16 sm:px-8 sm:py-24 lg:py-28">
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(37,99,235,0.05) 0%, transparent 70%)" }} />
 
       <div className="relative mx-auto max-w-7xl">
@@ -233,8 +274,8 @@ export function TechStackSection() {
           </p>
         </motion.div>
 
-        {/* 3-column layout */}
-        <div className="flex items-center gap-0">
+        {/* Desktop layout (lg+) — 5-column horizontal */}
+        <div className="hidden items-center gap-0 lg:flex">
 
           {/* Left: OEM Sources */}
           <div className="flex w-[220px] shrink-0 flex-col gap-2">
@@ -265,6 +306,44 @@ export function TechStackSection() {
             {DEV_STACK.map((tool, i) => (
               <DevCard key={tool.name} {...tool} delay={0.12 + i * 0.07} inView={inView} />
             ))}
+          </div>
+        </div>
+
+        {/* Mobile/tablet layout (< lg) — vertical stack */}
+        <div className="flex flex-col lg:hidden">
+          {/* OEM Sources grid */}
+          <div>
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Data Sources · JSON</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {DATA_SOURCES.map((src, i) => (
+                <SourceCard key={src.name} {...src} delay={0.08 + i * 0.06} inView={inView} />
+              ))}
+            </div>
+          </div>
+
+          {/* Stream: OEM → Hub */}
+          <div className="h-14">
+            <PacketStreamVertical count={6} />
+          </div>
+
+          {/* Hub */}
+          <div className="mx-auto w-full max-w-[340px]">
+            <Hub inView={inView} />
+          </div>
+
+          {/* Stream: Hub → Dev Stack */}
+          <div className="h-14">
+            <PacketStreamVertical count={6} />
+          </div>
+
+          {/* Dev Stack grid */}
+          <div>
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Dev Stack · Tools</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {DEV_STACK.map((tool, i) => (
+                <DevCard key={tool.name} {...tool} delay={0.12 + i * 0.07} inView={inView} />
+              ))}
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Code2, Globe } from "lucide-react";
+// Ändere Zeile 3 zu:
+import { ExternalLink } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 const NAV = [
@@ -53,10 +54,10 @@ export function Footer() {
         style={{ background: "linear-gradient(to right, transparent, rgba(37,99,235,0.6), rgba(6,182,212,0.4), transparent)" }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-8">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-8">
 
         {/* ── Main grid ── */}
-        <div className="grid gap-16 pb-16 pt-20 lg:grid-cols-[1fr_2fr]">
+        <div className="grid gap-0 pb-12 pt-14 sm:gap-16 sm:pb-16 sm:pt-20 lg:grid-cols-[1fr_2fr] lg:gap-10">
 
           {/* Left: brand block */}
           <motion.div
@@ -64,10 +65,11 @@ export function Footer() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: EASE_PREMIUM }}
+            className="pb-8 sm:pb-0"
           >
             {/* VentusVision logo */}
             <div
-              className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2"
+              className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-2 sm:mb-6 sm:h-16 sm:w-16"
               style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 0 28px rgba(37,99,235,0.35)" }}
             >
               <img
@@ -77,20 +79,20 @@ export function Footer() {
               />
             </div>
 
-            <h3 className="text-xl font-bold text-white">Ventus Vision</h3>
-            <p className="mt-2 max-w-xs text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <h3 className="text-lg font-bold text-white sm:text-xl">Ventus Vision</h3>
+            <p className="mt-2 max-w-xs text-[13px] leading-relaxed sm:text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
               B2B prototype for the CARUSO Data Marketplace. Built as part of the
               Software Engineering Project at Hochschule Mannheim.
             </p>
 
             {/* Links */}
-            <div className="mt-6 flex items-center gap-4">
+            <div className="mt-5 flex items-center gap-3 sm:mt-6 sm:gap-4">
               <motion.a
                 href="https://caruso-data-marketplace.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold"
+                className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2"
                 style={{
                   borderColor: "rgba(37,99,235,0.40)",
                   color: "rgba(255,255,255,0.75)",
@@ -105,29 +107,62 @@ export function Footer() {
                 <ExternalLink className="h-3 w-3" />
               </motion.a>
 
+              {/* GitHub Button (Icon ist jetzt oben importiert) */}
               <motion.a
-                href="https://github.com/VentusVision/DummyWebseite"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.08 }}
-                className="flex h-9 w-9 items-center justify-center rounded-full border"
-                style={{ borderColor: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.45)" }}
+              href="https://github.com/VentusVision/DummyWebseite"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.08 }}
+              className="flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9"
+              style={{ borderColor: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.45)" }}
+            >
+              {/* Direktes SVG statt fehlerhaftem Import */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
               >
-                <Code2 className="h-4 w-4" />
-              </motion.a>
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                <path d="M9 18c-4.51 2-5-2-7-2" />
+              </svg>
+            </motion.a>
 
+             {/* E-Mail Button (Modernes Design, passend zu den anderen Icons) */}
               <motion.a
-                href="https://www.hs-mannheim.de"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:ventusvision.sep@mail.de"
                 whileHover={{ scale: 1.08 }}
-                className="flex h-9 w-9 items-center justify-center rounded-full border"
+                className="flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9 transition-colors hover:bg-white/5 hover:text-white"
                 style={{ borderColor: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.45)" }}
+                title="Schreibe uns eine E-Mail"
               >
-                <Globe className="h-4 w-4" />
+                {/* Direktes SVG für das Mail-Icon (absolut sicher, kein Import-Stress) */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                >
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
               </motion.a>
             </div>
           </motion.div>
+
+          {/* Mobile separator */}
+          <div
+            className="mb-8 h-px lg:hidden"
+            style={{ background: "linear-gradient(to right, transparent, rgba(37,99,235,0.35), rgba(6,182,212,0.25), transparent)" }}
+          />
 
           {/* Right: nav columns */}
           <motion.div
@@ -135,18 +170,18 @@ export function Footer() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
             variants={STAGGER}
-            className="grid grid-cols-3 gap-8"
+            className="grid grid-cols-3 gap-3 sm:gap-8"
           >
             {NAV.map((col) => (
               <motion.div key={col.heading} variants={ITEM}>
-                <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: "rgba(37,99,235,0.8)" }}>
+                <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.2em] sm:mb-4 sm:text-[11px]" style={{ color: "rgba(37,99,235,0.8)" }}>
                   {col.heading}
                 </p>
-                <ul className="space-y-2.5">
+                <ul className="space-y-2 sm:space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link}>
                       <span
-                        className="cursor-default text-sm transition-colors hover:text-white"
+                        className="cursor-default text-[12px] leading-snug transition-colors hover:text-white sm:text-sm"
                         style={{ color: "rgba(255,255,255,0.42)" }}
                       >
                         {link}
@@ -165,7 +200,7 @@ export function Footer() {
           style={{ borderColor: "rgba(255,255,255,0.06)" }}
         >
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.28)" }}>
-            © 2026 Team Ventus Vision · Hochschule Mannheim · SEP
+            © 2026 Team Ventus Vision · Technische Hochschule Mannheim · SEP
           </p>
 
           {/* Status */}

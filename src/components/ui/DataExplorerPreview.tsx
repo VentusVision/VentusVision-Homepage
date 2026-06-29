@@ -1,304 +1,305 @@
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { EASE_PREMIUM } from "../../lib/motion";
+import { ArrowUpDown } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { CATEGORIES, OEMS, DATA_MATRIX } from "../../data/explorerData";
+import { useDataExplorerAutoDemo } from "../../hooks/useDataExplorerAutoDemo";
 
-interface Bar { label: string; pct: number }
-interface Dataset { category: string; count: number; catIdx: number; bars: Bar[] }
-
-// One distinct color per bar slot (0-5), stays consistent across dataset switches
-const BAR_COLORS = ["#f43f5e", "#fb923c", "#facc15", "#4ade80", "#60a5fa", "#a855f7"];
-
-const DATASETS: Dataset[] = [
-  {
-    category: "Charging & EV", count: 63, catIdx: 0,
-    bars: [
-      { label: "Renault", pct: 9.5  }, { label: "Tesla",   pct: 34.9 },
-      { label: "Kia",     pct: 7.9  }, { label: "Ford",    pct: 31.7 },
-      { label: "BMW",     pct: 17.5 }, { label: "Porsche", pct: 1.6  },
-    ],
-  },
-  {
-    category: "Battery & Energy", count: 48, catIdx: 1,
-    bars: [
-      { label: "Kia",     pct: 8.2  }, { label: "Tesla",   pct: 42.3 },
-      { label: "Volvo",   pct: 2.0  }, { label: "BMW",     pct: 24.1 },
-      { label: "Ford",    pct: 18.6 }, { label: "Renault", pct: 4.8  },
-    ],
-  },
-  {
-    category: "Safety & Incidents", count: 91, catIdx: 5,
-    bars: [
-      { label: "Ford",   pct: 19.1 }, { label: "BMW",    pct: 28.5 },
-      { label: "Tesla",  pct: 4.2  }, { label: "Audi",   pct: 22.3 },
-      { label: "Toyota", pct: 14.7 }, { label: "VW",     pct: 11.2 },
-    ],
-  },
-  {
-    category: "Trip & Driving Behavior", count: 57, catIdx: 6,
-    bars: [
-      { label: "Toyota",   pct: 8.8  }, { label: "BMW",      pct: 31.6 },
-      { label: "VW",       pct: 1.7  }, { label: "Mercedes", pct: 26.3 },
-      { label: "Audi",     pct: 19.3 }, { label: "Ford",     pct: 12.3 },
-    ],
-  },
-];
-
-const CATEGORIES = [
-  { label: "Charging & EV",           cls: "bg-rose-500"   },
-  { label: "Battery & Energy",        cls: "bg-orange-400" },
-  { label: "Powertrain & Engine",     cls: "bg-yellow-400" },
-  { label: "Fuel & Combustion",       cls: "bg-green-500"  },
-  { label: "Maintenance & Diag.",     cls: "bg-teal-500"   },
-  { label: "Safety & Incidents",      cls: "bg-blue-400"   },
-  { label: "Trip & Driving Behavior", cls: "bg-purple-400" },
-  { label: "Location & Navigation",   cls: "bg-pink-400"   },
-  { label: "Body, Access & Comfort",  cls: "bg-cyan-500"   },
-  { label: "Connectivity & Remote",   cls: "bg-violet-400" },
-];
-
-const CHANNELS = ["All", "B2B", "B2C"] as const;
-const STATUSES = ["All", "Available", "Draft"] as const;
+// ── Constants ─────────────────────────────────────────────────────────────────
+const SCALE    = 0.86;
+const X_AXIS_H = 96;
+const Y_TICK_W = 40;
 const Y_TICKS  = [0, 20, 40, 60, 80, 100];
+const TEAL     = "#22d3ee";
+const OEM_DOT  = "#3b82f6";
+const EASE     = [0.22, 1, 0.36, 1] as const;
 
+type Mode = "oem-by-cat" | "cat-by-oem";
+
+interface Bar { key: string; label: string; pct: number; color: string; logoFile?: string }
+
+function randomStartMode(): Mode {
+  return Math.random() < 0.5 ? "oem-by-cat" : "cat-by-oem";
+}
+
+function itemKeysForMode(mode: string): string[] {
+  return mode === "oem-by-cat"
+    ? CATEGORIES.map((c) => c.key)
+    : OEMS.map((o) => o.key);
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export function DataExplorerPreview() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, margin: "-60px 0px" });
+  const [mode, setMode]                 = useState<Mode>(randomStartMode);
+  const [selectedCat, setSelectedCat]   = useState("maintenance_diag");
+  const [selectedOem, setSelectedOem]   = useState("ford");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [hoveredBar, setHoveredBar]     = useState<string | null>(null);
 
-  const [dataIdx,    setDataIdx]    = useState(0);
-  const [tipIdx,     setTipIdx]     = useState(0);
-  const [channelIdx, setChannelIdx] = useState(0);
-  const [statusIdx,  setStatusIdx]  = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const modeRef  = useRef(mode);
+  const barInView  = useInView(rootRef, { once: true, amount: 0.2 });
+  const demoInView = useInView(rootRef, { once: false, amount: 0.35 });
 
-  useEffect(() => {
-    if (!inView) return;
-    const d = setInterval(() => setDataIdx(i    => (i + 1) % DATASETS.length), 3600);
-    const t = setInterval(() => setTipIdx(i     => (i + 1) % 6),               1300);
-    const c = setInterval(() => setChannelIdx(i => (i + 1) % CHANNELS.length), 2700);
-    const s = setInterval(() => setStatusIdx(i  => (i + 1) % STATUSES.length), 4200);
-    return () => { clearInterval(d); clearInterval(t); clearInterval(c); clearInterval(s); };
-  }, [inView]);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
 
-  const dataset = DATASETS[dataIdx];
-  const maxPct  = Math.max(...dataset.bars.map(b => b.pct));
+  const selectedKey = mode === "oem-by-cat" ? selectedCat : selectedOem;
+
+  const handleSelect = useCallback((key: string) => {
+    if (modeRef.current === "oem-by-cat") setSelectedCat(key);
+    else setSelectedOem(key);
+    setDropdownOpen(false);
+  }, []);
+
+  const handleSwitchAxes = useCallback(() => {
+    setMode((m) => (m === "oem-by-cat" ? "cat-by-oem" : "oem-by-cat"));
+    setDropdownOpen(false);
+  }, []);
+
+  const { demoHighlightKey, onUserInteraction } = useDataExplorerAutoDemo({
+    inView: demoInView,
+    mode,
+    selectedKey,
+    getItemKeys: itemKeysForMode,
+    setDropdownOpen,
+    onSelect: handleSelect,
+    onSwitchAxes: handleSwitchAxes,
+  });
+
+  const bars: Bar[] = (mode === "oem-by-cat"
+    ? OEMS.map((o) => ({ key: o.key, label: o.label, pct: DATA_MATRIX[o.key]?.[selectedCat] ?? 0, color: TEAL,    logoFile: o.logoFile }))
+    : CATEGORIES.map((c) => ({ key: c.key, label: c.label, pct: DATA_MATRIX[selectedOem]?.[c.key] ?? 0, color: c.color }))
+  ).sort((a, b) => b.pct - a.pct);
+
+  const chartKey   = `${mode}-${mode === "oem-by-cat" ? selectedCat : selectedOem}`;
+  const currentCat = CATEGORIES.find((c) => c.key === selectedCat);
+  const currentOem = OEMS.find((o) => o.key === selectedOem);
+  const yLabel     = mode === "oem-by-cat" ? (currentCat?.label ?? selectedCat) : (currentOem?.label ?? selectedOem);
+  const statusLine = mode === "oem-by-cat"
+    ? `${currentCat?.count ?? ""} category-relevant data items · OEM distribution for ${currentCat?.label ?? selectedCat}`
+    : `Category distribution for ${currentOem?.label ?? selectedOem}`;
+
+  const dropdownItems = mode === "oem-by-cat"
+    ? CATEGORIES.map((c) => ({ key: c.key, label: c.label, dot: c.color }))
+    : OEMS.map((o) => ({ key: o.key, label: o.label, dot: OEM_DOT }));
 
   return (
-    <div ref={ref} className="absolute inset-0 flex overflow-hidden bg-surface text-fg">
-
-      {/* ── Chart area ── */}
-      <div className="flex min-w-0 flex-1 flex-col px-5 pb-4 pt-3">
-
-        {/* Status bar */}
-        <div className="mb-3 flex shrink-0 items-center gap-2">
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-          </span>
-          <span className="truncate font-mono text-[12px] text-fg-subtle">
-            <motion.span key={`cnt-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              {dataset.count}
-            </motion.span>
-            {" category-relevant items · OEM distribution for "}
-            <motion.span key={`cat-${dataIdx}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-semibold text-fg-muted">
-              {dataset.category}
-            </motion.span>
-          </span>
-        </div>
-
-        {/* Plot area */}
-        <div className="relative min-h-0 flex-1">
-
-          {/* Y-axis labels + horizontal grid lines */}
-          {Y_TICKS.map(tick => (
-            <div
-              key={tick}
-              className="pointer-events-none absolute left-0 right-0 flex items-center"
-              style={{ bottom: `calc(${tick}% + 20px)` }}
-            >
-              <span className="mr-2 w-7 shrink-0 text-right font-mono text-[8px] leading-none text-fg-subtle">
-                {tick}%
-              </span>
-              <div className="flex-1 border-t border-border" />
-            </div>
-          ))}
-
-          {/* Bar columns */}
-          <div
-            className="absolute flex gap-4"
-            style={{ left: 36, right: 0, top: 0, bottom: 20 }}
-          >
-            {dataset.bars.map((bar, i) => {
-              const heightPct = (bar.pct / maxPct) * 88;
-              const isTip     = inView && tipIdx === i;
-              const count     = Math.round(bar.pct / 100 * dataset.count);
-              const color     = BAR_COLORS[i];
-
-              return (
-                <div key={i} className="relative flex-1">
-
-                  {/* Tooltip */}
-                  <AnimatePresence>
-                    {isTip && (
-                      <motion.div
-                        key="tip"
-                        initial={{ opacity: 0, y: 6, scale: 0.88 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.88 }}
-                        transition={{ duration: 0.18 }}
-                        className="absolute z-10 -translate-x-1/2 rounded-md border border-border bg-surface px-2.5 py-1.5 shadow-card-md"
-                        style={{ bottom: `calc(${heightPct}% + 12px)`, left: "50%" }}
-                      >
-                        <p className="whitespace-nowrap font-mono text-[9px] font-semibold text-fg">{count} items</p>
-                        <p className="font-mono text-[9px] text-fg-muted">{bar.pct}%</p>
-                        <div className="absolute -bottom-[5px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rotate-45 border-b border-r border-border bg-surface" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Pct label above bar */}
-                  {!isTip && (
-                    <motion.span
-                      key={`lbl-${dataIdx}-${i}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: inView ? 1 : 0 }}
-                      transition={{ duration: 0.25, delay: 0.55 + i * 0.07 }}
-                      className="absolute -translate-x-1/2 font-mono text-[8px] tabular-nums text-fg-subtle"
-                      style={{ bottom: `calc(${heightPct}% + 4px)`, left: "50%" }}
-                    >
-                      {bar.pct}%
-                    </motion.span>
-                  )}
-
-                  {/* Bar — scaleY is compositor-compositable; height was not */}
-                  <motion.div
-                    key={`bar-${dataIdx}-${i}`}
-                    className="absolute bottom-0 rounded-t-[3px]"
-                    style={{
-                      left: "18%",
-                      right: "18%",
-                      height: `${heightPct}%`,
-                      backgroundColor: color,
-                      opacity: isTip ? 1 : 0.8,
-                      boxShadow: isTip ? `0 0 18px ${color}60` : "none",
-                      transformOrigin: "bottom",
-                      willChange: "transform",
-                    }}
-                    initial={{ scaleY: 0 }}
-                    animate={{ scaleY: inView ? 1 : 0 }}
-                    transition={{ duration: 0.72, ease: EASE_PREMIUM, delay: i * 0.07 }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          {/* X-axis labels */}
-          <div
-            className="absolute flex gap-4"
-            style={{ left: 36, right: 0, bottom: 0, height: 18 }}
-          >
-            {dataset.bars.map((bar, i) => (
-              <motion.span
-                key={`xl-${dataIdx}-${i}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: inView ? 1 : 0 }}
-                transition={{ duration: 0.2, delay: 0.1 + i * 0.07 }}
-                className="flex-1 truncate text-center font-mono text-[8px] text-fg-muted"
-              >
-                {bar.label}
-              </motion.span>
-            ))}
-          </div>
-        </div>
+    <div
+      ref={rootRef}
+      className="absolute inset-0 flex flex-col bg-surface text-fg"
+      style={{ overflow: "clip" } as React.CSSProperties}
+      onMouseEnter={onUserInteraction}
+      onClick={() => dropdownOpen && setDropdownOpen(false)}
+    >
+      {/* ── Title bar ────────────────────────────────────────────────────────── */}
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-border/50 px-5 py-3.5">
+        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400" />
+        <span className="truncate font-mono text-[10px] text-fg-subtle">{statusLine}</span>
       </div>
 
-      {/* ── Right sidebar ── */}
-      <div className="flex w-[260px] shrink-0 flex-col overflow-hidden border-l border-border bg-base">
+      {/* ── Chart body ───────────────────────────────────────────────────────── */}
+      <div className="relative flex min-h-0 flex-1 px-3 pb-5 pt-4">
 
-        {/* Header */}
-        <div className="shrink-0 border-b border-border px-5 py-3.5">
-          <p className="text-[16px] font-bold tracking-tight text-brand">CARUSO Explorer</p>
+        {/* Y-axis label — overflow: clip on the container prevents the rotated
+            button text from bleeding outside the 28 px column */}
+        <div
+          className="relative flex w-7 shrink-0 items-center justify-center"
+          style={{ overflow: "clip" } as React.CSSProperties}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUserInteraction();
+              setDropdownOpen((v) => !v);
+            }}
+            style={{ writingMode: "vertical-lr", transform: "rotate(180deg)", whiteSpace: "nowrap" }}
+            className="select-none rounded px-0.5 font-mono text-xs font-semibold text-brand transition-colors hover:text-brand/60"
+          >
+            {yLabel}
+          </button>
+
+          <AnimatePresence>
+            {dropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 4 }}
+                transition={{ duration: 0.13 }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute left-8 top-1/2 z-50 max-h-60 min-w-[230px] -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface shadow-2xl"
+              >
+                {dropdownItems.map((item) => {
+                  const isSelected = item.key === selectedKey;
+                  const isDemoHighlight = item.key === demoHighlightKey;
+
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        onUserInteraction();
+                        handleSelect(item.key);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition-colors",
+                        isSelected && "bg-blue-50 font-semibold text-fg",
+                        !isSelected && !isDemoHighlight && "text-fg hover:bg-base",
+                        isDemoHighlight && "bg-brand/10 font-semibold text-brand ring-1 ring-inset ring-brand/30",
+                      )}
+                    >
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.dot }} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Filters */}
-        <div className="shrink-0 space-y-4 border-b border-border px-5 py-4">
-          {/* Channel */}
-          <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Channel</p>
-            <div className="flex gap-2">
-              {CHANNELS.map((ch, i) => (
-                <span
-                  key={ch}
-                  style={{
-                    backgroundColor: channelIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
-                    color:           channelIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
-                    transition:      "background-color 0.28s ease, color 0.28s ease",
-                  }}
-                  className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
-                >
-                  {ch}
+        {/* Switch Axes button — absolute, bottom-left corner of the chart body */}
+        <motion.button
+          onClick={() => { onUserInteraction(); handleSwitchAxes(); }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.96 }}
+          title="Switch axes"
+          className="absolute bottom-4 left-6 z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-white"
+          style={{
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,0.14), 0 1px 6px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05)",
+          }}
+        >
+          <ArrowUpDown className="h-[18px] w-[18px] text-fg-muted" />
+        </motion.button>
+
+        {/* ── Plot area ──────────────────────────────────────────────────────── */}
+        <div className="relative min-h-0 flex-1">
+
+          {/* BAR AREA */}
+          <div className="absolute left-0 right-0 top-0" style={{ bottom: X_AXIS_H }}>
+
+            {/* Y gridlines + tick labels */}
+            {Y_TICKS.map((tick) => (
+              <div
+                key={tick}
+                className="pointer-events-none absolute left-0 right-0 flex items-center"
+                style={{ bottom: `${tick * SCALE}%` }}
+              >
+                <span className="shrink-0 pr-2 text-right font-mono text-[9px] text-fg-subtle" style={{ width: Y_TICK_W }}>
+                  {tick > 0 ? `${tick}%` : ""}
                 </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Status */}
-          <div>
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Status</p>
-            <div className="flex gap-2">
-              {STATUSES.map((st, i) => (
-                <span
-                  key={st}
-                  style={{
-                    backgroundColor: statusIdx === i ? "rgba(37,99,235,0.10)" : "transparent",
-                    color:           statusIdx === i ? "#2563EB"               : "rgba(15,23,42,0.42)",
-                    transition:      "background-color 0.28s ease, color 0.28s ease",
-                  }}
-                  className="cursor-default rounded-full border border-border px-3 py-1.5 font-mono text-[11px]"
-                >
-                  {st}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4">
-          <p className="mb-3 shrink-0 font-mono text-[10px] uppercase tracking-widest text-fg-subtle">Categories</p>
-          <div className="flex flex-col gap-2 overflow-hidden">
-            {CATEGORIES.map((cat, i) => {
-              const isActive = i === dataset.catIdx;
-              return (
-                <motion.span
-                  key={cat.label}
-                  animate={{ opacity: isActive ? 1 : 0.45 }}
-                  transition={{ duration: 0.35 }}
-                  className={cn(
-                    "inline-flex shrink-0 items-center truncate rounded-full px-4 py-2 text-[11px] font-semibold text-white",
-                    cat.cls,
-                    isActive && "ring-2 ring-white/30 ring-offset-[2px] ring-offset-white",
-                  )}
-                >
-                  {cat.label}
-                </motion.span>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Wizard hint */}
-        <div className="shrink-0 border-t border-border px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            {[0, 1, 2].map(s => (
-              <motion.span
-                key={s}
-                className="h-[6px] w-[6px] rounded-full bg-brand"
-                animate={{ opacity: [0.25, 1, 0.25] }}
-                transition={{ duration: 1.8, repeat: Infinity, delay: s * 0.45 }}
-              />
+                <div className="flex-1 border-t border-border/35" />
+              </div>
             ))}
-            <span className="font-mono text-[10px] text-fg-subtle">Highlights Wizard</span>
+
+            {/* Bar columns */}
+            <div className="absolute bottom-0 top-0" style={{ left: Y_TICK_W, right: 0 }}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={chartKey}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex h-full gap-1.5"
+                >
+                  {bars.map((bar, i) => {
+                    const barH  = bar.pct * SCALE;
+                    const isHov = hoveredBar === bar.key;
+
+                    return (
+                      <div
+                        key={bar.key}
+                        className="flex flex-1 flex-col"
+                        onMouseEnter={() => setHoveredBar(bar.key)}
+                        onMouseLeave={() => setHoveredBar(null)}
+                      >
+                        <div className="relative flex min-h-0 flex-1 flex-col items-center justify-end pb-0.5">
+                          {isHov && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -3 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.12 }}
+                              className="pointer-events-none absolute top-2 z-30 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border bg-surface px-2.5 py-1.5 shadow-lg"
+                              style={{ left: "50%" }}
+                            >
+                              <p className="text-[10px] font-semibold text-fg">{bar.label}</p>
+                              <p className="text-[9px] text-fg-muted">{bar.pct.toFixed(1)}% coverage</p>
+                            </motion.div>
+                          )}
+
+                          {bar.logoFile && (
+                            <img
+                              src={`${import.meta.env.BASE_URL}${bar.logoFile}`}
+                              alt={bar.label}
+                              className="mb-0.5 h-[20px] w-[28px] object-contain sm:h-[32px] sm:w-[44px]"
+                              draggable={false}
+                            />
+                          )}
+
+                          <span className="shrink-0 font-mono text-[9px] text-fg-muted">
+                            {bar.pct.toFixed(1)}%
+                          </span>
+                        </div>
+
+                        <div
+                          className="relative shrink-0"
+                          style={{ height: `${Math.max(barH, 0.3)}%` }}
+                        >
+                          <motion.div
+                            className="absolute bottom-0 rounded-t-[3px]"
+                            style={{
+                              left: "22%",
+                              right: "22%",
+                              height: "100%",
+                              backgroundColor: bar.color,
+                              transformOrigin: "bottom",
+                            }}
+                            initial={{ scaleY: 0 }}
+                            animate={{ scaleY: barInView ? 1 : 0 }}
+                            exit={{ scaleY: 0, transition: { duration: 0.2 } }}
+                            transition={{ duration: 0.65, ease: EASE, delay: barInView ? 0.06 + i * 0.045 : 0 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* X-AXIS: angled names */}
+          <div className="absolute bottom-0" style={{ left: Y_TICK_W, right: 0, height: X_AXIS_H }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`xl-${chartKey}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18, delay: 0.12 }}
+                className="flex h-full gap-1.5"
+              >
+                {bars.map((bar) => (
+                  <div key={bar.key} className="relative flex-1">
+                    <div style={{ position: "absolute", left: "50%", top: 4, width: 0 }}>
+                      <span
+                        style={{
+                          position: "absolute",
+                          right: 0,
+                          top: 0,
+                          whiteSpace: "nowrap",
+                          transform: "rotate(-40deg)",
+                          transformOrigin: "100% 0",
+                        }}
+                        className="font-mono text-[10px] text-fg-muted"
+                      >
+                        {bar.label}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

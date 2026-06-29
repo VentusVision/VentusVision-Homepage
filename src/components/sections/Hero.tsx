@@ -41,7 +41,7 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-base px-6 pb-24 pt-32"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-base px-4 pb-16 pt-24 sm:px-6 sm:pb-24 sm:pt-32"
     >
       {/* Soft radial glow from top */}
       <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
@@ -149,7 +149,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 80 }}
         animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
         transition={{ duration: 1.1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 mt-20 w-[98vw] max-w-[1800px]"
+        className="relative z-10 mt-12 w-[98vw] max-w-[1800px] sm:mt-20"
       >
         <MonitorFrame>
           <HeroTripleDash />
