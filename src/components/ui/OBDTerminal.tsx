@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 const LINES = [
@@ -22,10 +22,13 @@ interface OBDTerminalProps {
 }
 
 export function OBDTerminal({ onComplete }: OBDTerminalProps) {
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   useEffect(() => {
-    const t = setTimeout(onComplete, COMPLETE_AT * 1000);
+    const t = setTimeout(() => onCompleteRef.current(), COMPLETE_AT * 1000);
     return () => clearTimeout(t);
-  }, [onComplete]);
+  }, []);
 
   return (
     <motion.div

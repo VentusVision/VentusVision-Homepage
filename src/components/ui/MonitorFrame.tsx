@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import type { ReactNode } from "react";
+import { useRef } from "react";
 import { ExternalLink } from "lucide-react";
 import { floatLoop } from "../../lib/motion";
 
@@ -11,10 +12,14 @@ interface MonitorFrameProps {
 }
 
 export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: MonitorFrameProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { margin: "-10% 0px", amount: 0.08 });
+
   return (
     <motion.div
-      animate={floatLoop.animate}
-      transition={floatLoop.transition}
+      ref={ref}
+      animate={inView ? floatLoop.animate : undefined}
+      transition={inView ? floatLoop.transition : undefined}
       className="flex flex-col items-center"
     >
       {/* ── Outer shadow ── */}
@@ -50,18 +55,18 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
             </div>
           </div>
 
-          {/* ── Screen content — 16:9 ── */}
-          <div className="relative w-full bg-base" style={{ aspectRatio: "16/9" }}>
+          {/* ── Screen content — tall portrait on mobile, 16:9 on sm+ ── */}
+          <div className="relative w-full bg-base aspect-[9/16] sm:aspect-video">
             {children}
           </div>
 
           {/* ── Bottom bezel: brand + LIVE badge + power LED ── */}
           <div
-            className="flex shrink-0 items-center justify-between px-5 py-2.5"
+            className="flex shrink-0 items-center gap-2 px-3 py-2 sm:justify-between sm:px-5 sm:py-2.5"
             style={{ background: "#E4EBF8", borderTop: "1px solid rgba(37,99,235,0.10)" }}
           >
             {/* Brand */}
-            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.25em]" style={{ color: "rgba(37,99,235,0.30)" }}>
+            <span className="shrink-0 font-mono text-[8px] font-bold uppercase tracking-[0.25em]" style={{ color: "rgba(37,99,235,0.30)" }}>
               CARUSO
             </span>
 
@@ -72,7 +77,7 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05, boxShadow: "0 4px 20px rgba(37,99,235,0.28)" }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2.5 rounded-full px-4 py-1.5"
+              className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-full px-2.5 py-1.5 sm:flex-none sm:gap-2.5 sm:px-4"
               style={{
                 border: "1px solid rgba(37,99,235,0.25)",
                 background: "rgba(255,255,255,0.88)",
@@ -84,9 +89,9 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
               </span>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-green-600">Live</span>
+              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-green-600">Live</span>
               <span className="h-3 w-px shrink-0" style={{ background: "rgba(15,23,42,0.15)" }} />
-              <span className="font-mono text-[10px] font-medium" style={{ color: "rgba(15,23,42,0.55)" }}>
+              <span className="min-w-0 truncate font-mono text-[10px] font-medium" style={{ color: "rgba(15,23,42,0.55)" }}>
                 caruso-data-marketplace.vercel.app
               </span>
               <ExternalLink className="h-3 w-3 shrink-0" style={{ color: "rgba(37,99,235,0.55)" }} />

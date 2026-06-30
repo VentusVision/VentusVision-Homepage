@@ -1,9 +1,11 @@
 import { motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { memo, useRef } from "react";
 import {
   Server, Database, Code2, Globe, GitBranch,
   PenTool, Upload, FileJson, Layers, RefreshCw, Layout,
 } from "lucide-react";
+import { useElementHeight } from "../../hooks/useElementHeight";
+import { useElementWidth } from "../../hooks/useElementWidth";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { SectionBadge } from "../ui/SectionBadge";
 
@@ -40,33 +42,28 @@ const DEV_STACK = [
   { name: "JSON Files",      desc: "OEM data source format", from: "#0F766E", to: "#06B6D4", Icon: FileJson   },
 ];
 
+const PACKET_STREAM_COLORS = [
+  "#2563EB", "#06B6D4", "#7C3AED", "#0EA5E9", "#A855F7", "#06B6D4", "#3B82F6", "#10B981",
+] as const;
+
 // ── Animated packet stream ─────────────────────
 
-function PacketStream({ reverse = false, count = 6 }: { reverse?: boolean; count?: number }) {
+const PacketStream = memo(function PacketStream({ reverse = false, count = 6 }: { reverse?: boolean; count?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(0);
+  const inView = useInView(containerRef, { margin: "-10% 0px", amount: 0.05 });
+  const w = useElementWidth(containerRef);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setW(el.offsetWidth));
-    ro.observe(el);
-    setW(el.offsetWidth);
-    return () => ro.disconnect();
-  }, []);
-
-  const colors = ["#2563EB", "#06B6D4", "#7C3AED", "#0EA5E9", "#A855F7", "#06B6D4", "#3B82F6", "#10B981"];
   const spread = Math.max(count - 1, 1);
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand/4 to-transparent" />
       <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-brand/15 to-transparent" />
-      {w > 0 && Array.from({ length: count }).map((_, i) => {
+      {w > 0 && inView && Array.from({ length: count }).map((_, i) => {
         const top   = 6 + (i / spread) * 88;
         const dur   = 1.3 + i * 0.18;
         const delay = i * 0.3;
-        const color = colors[i % colors.length];
+        const color = PACKET_STREAM_COLORS[i % PACKET_STREAM_COLORS.length];
         return (
           <motion.div
             key={i}
@@ -80,52 +77,61 @@ function PacketStream({ reverse = false, count = 6 }: { reverse?: boolean; count
       })}
     </div>
   );
-}
+});
 
 // ── Vertical packet stream (mobile) ───────────
+// reverse=true  → dots flow UP   (bottom → Caruso hub)
+// reverse=false → dots flow DOWN (OEMs  → Caruso hub)
 
-function PacketStreamVertical({ count = 5 }: { count?: number }) {
+const PacketStreamVertical = memo(function PacketStreamVertical({
+  count = 5,
+  reverse = false,
+}: {
+  count?: number;
+  reverse?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [h, setH] = useState(0);
+  const inView = useInView(containerRef, { margin: "-10% 0px", amount: 0.05 });
+  const h = useElementHeight(containerRef);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setH(el.offsetHeight));
-    ro.observe(el);
-    setH(el.offsetHeight);
-    return () => ro.disconnect();
-  }, []);
-
-  const colors = ["#2563EB", "#06B6D4", "#7C3AED", "#0EA5E9", "#A855F7", "#06B6D4", "#3B82F6", "#10B981"];
   const spread = Math.max(count - 1, 1);
+  // gradient: brighter toward the Hub end (bottom for top-stream, top for bottom-stream)
+  const lineGradient = reverse
+    ? "bg-gradient-to-b from-brand/30 via-brand/15 to-transparent"
+    : "bg-gradient-to-b from-transparent via-brand/15 to-brand/30";
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
-      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-brand/15 to-transparent" />
-      {h > 0 && Array.from({ length: count }).map((_, i) => {
-        const left  = 10 + (i / spread) * 80;
-        const dur   = 1.2 + i * 0.2;
-        const delay = i * 0.28;
-        const color = colors[i % colors.length];
+      <div className={`absolute left-1/2 top-0 h-full w-px -translate-x-1/2 ${lineGradient}`} />
+      {h > 0 && inView && Array.from({ length: count }).map((_, i) => {
+        const left  = 15 + (i / spread) * 70;
+        const dur   = 1.1 + i * 0.18;
+        const delay = i * 0.25;
+        const color = PACKET_STREAM_COLORS[i % PACKET_STREAM_COLORS.length];
         return (
           <motion.div
             key={i}
             className="absolute h-2 w-2 rounded-full"
-            style={{ left: `${left}%`, background: color, boxShadow: `0 0 8px 3px ${color}77`, top: 0 }}
-            initial={{ y: -8, opacity: 0 }}
-            animate={{ y: h + 8, opacity: [0, 1, 1, 0] }}
+            style={{
+              left: `${left}%`,
+              background: color,
+              boxShadow: `0 0 8px 3px ${color}77`,
+              top: reverse ? undefined : 0,
+              bottom: reverse ? 0 : undefined,
+            }}
+            initial={{ y: reverse ? 8 : -8, opacity: 0 }}
+            animate={{ y: reverse ? -(h + 8) : h + 8, opacity: [0, 1, 1, 0] }}
             transition={{ duration: dur, repeat: Infinity, delay, ease: "linear" }}
           />
         );
       })}
     </div>
   );
-}
+});
 
 // ── Source card (OEMs) ─────────────────────────
 
-function SourceCard({ name, abbr, from, to, delay, inView }: typeof DATA_SOURCES[0] & { delay: number; inView: boolean }) {
+const SourceCard = memo(function SourceCard({ name, abbr, from, to, delay, inView }: typeof DATA_SOURCES[0] & { delay: number; inView: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -28 }}
@@ -144,18 +150,14 @@ function SourceCard({ name, abbr, from, to, delay, inView }: typeof DATA_SOURCES
         <p className="text-[14px] font-semibold text-fg">{name}</p>
         <p className="text-[11px] text-fg-subtle">· JSON</p>
       </div>
-      <motion.div
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 2, repeat: Infinity, delay: delay * 0.7 }}
-        className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"
-      />
+      <span className="ml-auto h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-green-500" />
     </motion.div>
   );
-}
+});
 
 // ── Dev tool card (right column) ──────────────
 
-function DevCard({ name, desc, from, to, Icon, delay, inView }: typeof DEV_STACK[0] & { delay: number; inView: boolean }) {
+const DevCard = memo(function DevCard({ name, desc, from, to, Icon, delay, inView }: typeof DEV_STACK[0] & { delay: number; inView: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 28 }}
@@ -176,11 +178,11 @@ function DevCard({ name, desc, from, to, Icon, delay, inView }: typeof DEV_STACK
       </div>
     </motion.div>
   );
-}
+});
 
 // ── Center Hub ─────────────────────────────────
 
-function Hub({ inView }: { inView: boolean }) {
+const Hub = memo(function Hub({ inView }: { inView: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.88, y: 16 }}
@@ -197,13 +199,10 @@ function Hub({ inView }: { inView: boolean }) {
           className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1.5"
           style={{ boxShadow: "0 0 0 1px rgba(37,99,235,0.12), 0 4px 14px rgba(37,99,235,0.18)" }}
         >
-          {/* Glow pulse via opacity (compositor-only — no paint per frame) */}
-          <motion.span
+          <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-2xl"
+            className="pointer-events-none absolute inset-0 animate-pulse rounded-2xl"
             style={{ boxShadow: "0 0 32px rgba(37,99,235,0.45)" }}
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
           />
           <img
             src={`${import.meta.env.BASE_URL}CarusoBall.png`}
@@ -214,7 +213,7 @@ function Hub({ inView }: { inView: boolean }) {
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand/60">CARUSO</p>
         <p className="mt-0.5 text-[17px] font-extrabold tracking-tight text-fg">Data Marketplace</p>
         <div className="mt-1.5 flex items-center justify-center gap-1.5">
-          <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
           <span className="text-[10px] font-semibold text-green-600">Live · 99.9% uptime</span>
         </div>
       </div>
@@ -241,7 +240,7 @@ function Hub({ inView }: { inView: boolean }) {
       </div>
     </motion.div>
   );
-}
+});
 
 // ── Section ────────────────────────────────────
 
@@ -309,21 +308,40 @@ export function TechStackSection() {
           </div>
         </div>
 
-        {/* Mobile/tablet layout (< lg) — vertical stack */}
-        <div className="flex flex-col lg:hidden">
-          {/* OEM Sources grid */}
+        {/* Mobile/tablet layout (< lg) — vertical stack with horizontal scroll rows */}
+        <div className="flex flex-col gap-0 lg:hidden">
+
+          {/* OEM Sources — compact 2-column grid */}
           <div>
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Data Sources · JSON</p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">
+              Data Sources · JSON
+            </p>
+            <div className="grid grid-cols-2 gap-2">
               {DATA_SOURCES.map((src, i) => (
-                <SourceCard key={src.name} {...src} delay={0.08 + i * 0.06} inView={inView} />
+                <motion.div
+                  key={src.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.4, delay: 0.06 + i * 0.05, ease: EASE_PREMIUM }}
+                  className="flex items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-2.5"
+                  style={{ boxShadow: "0 1px 4px rgba(15,23,42,0.06)" }}
+                >
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-black text-white"
+                    style={{ background: `linear-gradient(135deg, ${src.from}, ${src.to})` }}
+                  >
+                    {src.abbr}
+                  </div>
+                  <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-fg">{src.name}</span>
+                  <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-green-500" />
+                </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Stream: OEM → Hub */}
-          <div className="h-14">
-            <PacketStreamVertical count={6} />
+          {/* Stream: OEM → Hub (dots flow DOWN toward Caruso) */}
+          <div className="h-16">
+            <PacketStreamVertical count={5} reverse={false} />
           </div>
 
           {/* Hub */}
@@ -331,18 +349,44 @@ export function TechStackSection() {
             <Hub inView={inView} />
           </div>
 
-          {/* Stream: Hub → Dev Stack */}
-          <div className="h-14">
-            <PacketStreamVertical count={6} />
+          {/* Stream: Dev Stack → Hub (dots flow UP toward Caruso) */}
+          <div className="h-16">
+            <PacketStreamVertical count={5} reverse={true} />
           </div>
 
-          {/* Dev Stack grid */}
+          {/* Dev Stack — compact 2-column grid */}
           <div>
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">Dev Stack · Tools</p>
-            <div className="grid grid-cols-2 gap-2.5">
-              {DEV_STACK.map((tool, i) => (
-                <DevCard key={tool.name} {...tool} delay={0.12 + i * 0.07} inView={inView} />
-              ))}
+            <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fg-subtle">
+              Dev Stack · Tools
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {DEV_STACK.map((tool, i) => {
+                const Icon = tool.Icon;
+                return (
+                  <motion.div
+                    key={tool.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.4, delay: 0.1 + i * 0.05, ease: EASE_PREMIUM }}
+                    className="flex items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-2.5"
+                    style={{ boxShadow: "0 1px 4px rgba(15,23,42,0.06)" }}
+                  >
+                    <div
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${tool.from}20, ${tool.to}20)`,
+                        border: `1px solid ${tool.from}40`,
+                      }}
+                    >
+                      <Icon className="h-3.5 w-3.5" style={{ color: tool.from }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[12px] font-semibold text-fg">{tool.name}</p>
+                      <p className="truncate text-[10px] text-fg-subtle">{tool.desc}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>

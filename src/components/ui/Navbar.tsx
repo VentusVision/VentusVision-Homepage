@@ -20,7 +20,16 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 24);
+        ticking = false;
+      });
+    };
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -50,15 +59,15 @@ export function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: EASE_PREMIUM }}
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
+        "fixed inset-x-0 top-0 z-50 duration-300 transition-[background-color,border-color,box-shadow]",
         scrolled
           ? "border-b border-brand/10 bg-surface/80 backdrop-blur-2xl shadow-[0_4px_24px_rgba(37,99,235,0.07)]"
           : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <a href="#home" className="group flex items-center gap-3">
+        <a href="#home" className="group flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-brand/20 bg-white p-1.5 shadow-[0_0_14px_rgba(37,99,235,0.12)] transition-all duration-300 group-hover:shadow-brand group-hover:border-brand/40">
             <img
               src={`${import.meta.env.BASE_URL}ventusvision.png`}
@@ -66,7 +75,7 @@ export function Navbar() {
               className="h-full w-full object-contain"
             />
           </div>
-          <span className="text-xl font-bold tracking-tight text-fg transition-colors duration-200">
+          <span className="min-w-0 truncate text-base font-bold tracking-tight text-fg sm:text-xl">
             Ventus <span className="text-brand">Vision</span>
           </span>
         </a>
@@ -108,7 +117,7 @@ export function Navbar() {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:text-fg lg:hidden"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-fg-muted transition-colors hover:text-fg lg:hidden"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
