@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, Component, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useIntervalWhen } from "../../hooks/useIntervalWhen";
@@ -8,6 +8,15 @@ import { LazyWhenVisible } from "../ui/LazyWhenVisible";
 import { OBDTerminal } from "../ui/OBDTerminal";
 import { VehicleBackground } from "../ui/VehicleBackground";
 import { EASE_PREMIUM } from "../../lib/motion";
+
+class MonitorErrorBoundary extends Component<{ children: ReactNode }, { crashed: boolean }> {
+  state = { crashed: false };
+  static getDerivedStateFromError() { return { crashed: true }; }
+  render() {
+    if (this.state.crashed) return <div className="h-full w-full bg-base" />;
+    return this.props.children;
+  }
+}
 
 const STATIC_WORDS = ["The", "Future", "of", "Vehicle", "Data,"];
 
@@ -148,9 +157,11 @@ export function Hero() {
         className="relative z-10 mt-12 w-full max-w-[1800px] sm:mt-20"
       >
         <MonitorFrame>
-          <LazyWhenVisible className="absolute inset-0">
-            <HeroTripleDash />
-          </LazyWhenVisible>
+          <MonitorErrorBoundary>
+            <LazyWhenVisible className="absolute inset-0">
+              <HeroTripleDash />
+            </LazyWhenVisible>
+          </MonitorErrorBoundary>
         </MonitorFrame>
       </motion.div>
     </section>
