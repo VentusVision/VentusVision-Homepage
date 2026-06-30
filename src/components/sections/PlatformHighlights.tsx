@@ -44,7 +44,7 @@ const HIGHLIGHTS: Highlight[] = [
     previewKind: "explorer",
     wide: true,
     frameHeight: "h-[480px] sm:h-[640px] lg:h-[900px]",
-    frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
+    frameBleed: undefined,
   },
   {
     id: "map",
@@ -63,7 +63,7 @@ const HIGHLIGHTS: Highlight[] = [
     previewKind: "map",
     wide: true,
     frameHeight: "h-[620px] sm:h-[640px] lg:h-[900px]",
-    frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
+    frameBleed: undefined,
   },
 ];
 
@@ -79,13 +79,13 @@ function HighlightRow({
 }: Highlight) {
   if (wide) {
     return (
-      <div id={id} className="flex flex-col gap-10">
+      <div id={id} className="flex flex-col gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.7, ease: EASE_PREMIUM }}
-          className={cn("max-w-2xl", frameBleed && "sm:-ml-10 lg:-ml-16 xl:-ml-24")}
+          className="max-w-2xl"
         >
           <SectionBadge label={eyebrow} className="text-xs" />
           <h3 className="mt-5 text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
@@ -99,7 +99,7 @@ function HighlightRow({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.75, ease: EASE_PREMIUM, delay: 0.1 }}
-          className={frameBleed}
+          className={frameBleed ?? undefined}
         >
           <GlowImageFrame
             src={imageSrc}
@@ -160,17 +160,17 @@ function HighlightRow({
 
 export function PlatformHighlights() {
   return (
-    <section className="relative overflow-x-clip bg-base px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
+    <section className="relative overflow-x-clip bg-base px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
       {/* Decorative vehicle animation layer — behind all content */}
       <VehicleBackground iconOpacity={0.14} laneOpacity={0.14} laneSpeed={38} floatAmplitude={15} />
 
-      <div className="relative z-[1] mx-auto max-w-7xl space-y-16 lg:space-y-24">
+      <div className="relative z-[1] mx-auto max-w-7xl space-y-12 lg:space-y-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.6 }}
-          className="max-w-2xl sm:-ml-10 lg:-ml-16 xl:-ml-24"
+          className="max-w-2xl"
         >
           <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
             Platform <span className="text-brand">Highlights</span>
