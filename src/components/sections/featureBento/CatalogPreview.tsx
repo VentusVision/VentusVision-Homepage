@@ -9,7 +9,15 @@ import { LiveTicker } from "./LiveTicker";
 import { ProductCard } from "./ProductCard";
 import { useElementWidth } from "../../../hooks/useElementWidth";
 
-export const CatalogPreview = memo(function CatalogPreview({ preview = false }: { preview?: boolean }) {
+export const CatalogPreview = memo(function CatalogPreview({
+  preview = false,
+  monitorMode = false,
+}: {
+  preview?: boolean;
+  /** When true: disables the heavy 75ms-tick typing demo and runs a lightweight
+   *  category-cycling loop instead. Cuts re-renders from ~13/sec to 1 per 3 s. */
+  monitorMode?: boolean;
+}) {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-60px" });
 
@@ -21,7 +29,20 @@ export const CatalogPreview = memo(function CatalogPreview({ preview = false }: 
   const { query, setQuery, debouncedQ, selectedCat, setSelectedCat, sortBy, setSortBy, highlightOn, filtered } =
     useCatalogFilter(CATALOG_ITEMS);
 
-  useAutoDemo(inView, setQuery, setSelectedCat, setSortBy);
+  // In monitorMode pass inView=false to disable the typing-heavy auto-demo.
+  useAutoDemo(monitorMode ? false : inView, setQuery, setSelectedCat, setSortBy);
+
+  // monitorMode: simple category cycling — 1 render per 3 s instead of 13+/s.
+  useEffect(() => {
+    if (!monitorMode || !inView) return;
+    const cats: Array<string | null> = [null, ...CATALOG_CATEGORIES.slice(0, 5)];
+    let i = 0;
+    const id = setInterval(() => {
+      i = (i + 1) % cats.length;
+      setSelectedCat(cats[i]);
+    }, 3000);
+    return () => clearInterval(id);
+  }, [monitorMode, inView, setSelectedCat]);
 
   // On mobile: auto-open the dropdown when a category is selected by the demo
   useEffect(() => {

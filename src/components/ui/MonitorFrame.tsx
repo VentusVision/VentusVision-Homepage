@@ -1,6 +1,6 @@
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 import { floatLoop } from "../../lib/motion";
 
@@ -14,18 +14,42 @@ interface MonitorFrameProps {
 export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: MonitorFrameProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { margin: "-10% 0px", amount: 0.08 });
+  const prefersReduced = useReducedMotion();
+
+  // Detect mobile synchronously so there's no flash on first render.
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 640,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // On mobile: skip float animation — animating transform on this large composite
+  // layer forces the GPU to re-composite hundreds of children every frame.
+  const shouldFloat = inView && !isMobile && !prefersReduced;
 
   return (
     <motion.div
       ref={ref}
-      animate={inView ? floatLoop.animate : undefined}
-      transition={inView ? floatLoop.transition : undefined}
+      animate={shouldFloat ? floatLoop.animate : undefined}
+      transition={shouldFloat ? floatLoop.transition : undefined}
       className="flex flex-col items-center"
     >
-      {/* ── Outer shadow ── */}
+      {/* Outer shadow — on mobile skip drop-shadow filter (forces full subtree
+          re-rasterisation every frame); box-shadow on the body is sufficient. */}
       <div
         className="relative w-full"
-        style={{ filter: "drop-shadow(0 0 40px rgba(37,99,235,0.10)) drop-shadow(0 40px 80px rgba(15,23,42,0.22))" }}
+        style={
+          isMobile
+            ? undefined
+            : {
+                filter:
+                  "drop-shadow(0 0 40px rgba(37,99,235,0.10)) drop-shadow(0 40px 80px rgba(15,23,42,0.22))",
+              }
+        }
       >
         {/* ── Monitor body ── */}
         <div
@@ -45,10 +69,15 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
             <span className="h-[9px] w-[9px] rounded-full" style={{ backgroundColor: "#ff5f57" }} />
             <span className="h-[9px] w-[9px] rounded-full" style={{ backgroundColor: "#febc2e" }} />
             <span className="h-[9px] w-[9px] rounded-full" style={{ backgroundColor: "#28c840" }} />
-            <span className="ml-3 font-mono text-[9px] tracking-wide" style={{ color: "rgba(15,23,42,0.35)" }}>{title}</span>
+            <span className="ml-3 font-mono text-[9px] tracking-wide" style={{ color: "rgba(15,23,42,0.35)" }}>
+              {title}
+            </span>
             <div className="ml-auto flex items-center gap-1">
+              {/* LIVE dot — static on mobile (no animate-ping = fewer compositor layers) */}
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-50" />
+                {!isMobile && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-50" />
+                )}
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
               </span>
               <span className="font-mono text-[8px]" style={{ color: "rgba(34,197,94,0.7)" }}>LIVE</span>
@@ -66,7 +95,10 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
             style={{ background: "#E4EBF8", borderTop: "1px solid rgba(37,99,235,0.10)" }}
           >
             {/* Brand */}
-            <span className="shrink-0 font-mono text-[8px] font-bold uppercase tracking-[0.25em]" style={{ color: "rgba(37,99,235,0.30)" }}>
+            <span
+              className="shrink-0 font-mono text-[8px] font-bold uppercase tracking-[0.25em]"
+              style={{ color: "rgba(37,99,235,0.30)" }}
+            >
               CARUSO
             </span>
 
@@ -84,14 +116,21 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
                 boxShadow: "0 2px 10px rgba(37,99,235,0.14), inset 0 1px 0 rgba(255,255,255,1)",
               }}
             >
-              {/* Pulsing green dot */}
+              {/* Pulsing green dot — static on mobile */}
               <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                {!isMobile && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                )}
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
               </span>
-              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-green-600">Live</span>
+              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-green-600">
+                Live
+              </span>
               <span className="h-3 w-px shrink-0" style={{ background: "rgba(15,23,42,0.15)" }} />
-              <span className="min-w-0 truncate font-mono text-[10px] font-medium" style={{ color: "rgba(15,23,42,0.55)" }}>
+              <span
+                className="min-w-0 truncate font-mono text-[10px] font-medium"
+                style={{ color: "rgba(15,23,42,0.55)" }}
+              >
                 caruso-data-marketplace.vercel.app
               </span>
               <ExternalLink className="h-3 w-3 shrink-0" style={{ color: "rgba(37,99,235,0.55)" }} />
@@ -100,10 +139,7 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
             {/* Power LED */}
             <span
               className="h-2 w-2 rounded-full"
-              style={{
-                backgroundColor: "#2563EB",
-                boxShadow: "0 0 8px rgba(37,99,235,0.9)",
-              }}
+              style={{ backgroundColor: "#2563EB", boxShadow: "0 0 8px rgba(37,99,235,0.9)" }}
             />
           </div>
         </div>
@@ -147,8 +183,7 @@ export function MonitorFrame({ children, title = "CARUSO Data Marketplace" }: Mo
         style={{
           width: "40%",
           height: "1px",
-          background:
-            "linear-gradient(to right, transparent, rgba(15,23,42,0.08), transparent)",
+          background: "linear-gradient(to right, transparent, rgba(15,23,42,0.08), transparent)",
         }}
       />
     </motion.div>

@@ -87,14 +87,14 @@ export function HeroTripleDash() {
                   >
                     {tab.label}
                   </span>
-                  {isActive && (
-                    <motion.span
-                      layoutId="tab-underline-m"
-                      className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
-                      style={{ backgroundColor: tab.color }}
-                      transition={{ duration: 0.3, ease: EASE_PREMIUM }}
-                    />
-                  )}
+                  {/* Opacity-only animation avoids layoutId getBoundingClientRect
+                      measurements on every tab switch — cheaper on mobile. */}
+                  <motion.span
+                    animate={{ opacity: isActive ? 1 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
+                    style={{ backgroundColor: tab.color }}
+                  />
                 </button>
               );
             })}
@@ -124,7 +124,7 @@ export function HeroTripleDash() {
               transition={{ duration: 0.26, ease: EASE_PREMIUM }}
               className="h-full"
             >
-              {tabIdx === 0 && <CatalogPreview />}
+              {tabIdx === 0 && <CatalogPreview monitorMode />}
               {tabIdx === 1 && <DataExplorerPreview />}
               {tabIdx === 2 && <MapPreview />}
             </motion.div>
