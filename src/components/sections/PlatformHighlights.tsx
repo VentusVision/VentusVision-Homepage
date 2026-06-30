@@ -6,7 +6,6 @@ import { MapPreview } from "../ui/MapPreview";
 import { VehicleBackground } from "../ui/VehicleBackground";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { SectionBadge } from "../ui/SectionBadge";
-import { cn } from "../../lib/utils";
 import { GlowImageFrame } from "../ui/GlowImageFrame";
 
 type PreviewKind = "explorer" | "map";
