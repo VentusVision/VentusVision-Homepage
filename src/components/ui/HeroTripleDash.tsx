@@ -57,6 +57,11 @@ export function HeroTripleDash() {
 
   const activeTab = TABS[tabIdx];
 
+  /* ── Wait for width measurement to avoid rendering wrong branch ── */
+  if (containerWidth === 0) {
+    return <div ref={ref} className="h-full w-full bg-base" />;
+  }
+
   /* ── Mobile: native-size previews (no scaling), just like the sections below ── */
   if (isMobile) {
     return (
