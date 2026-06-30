@@ -1,9 +1,11 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Search, BarChart3, Globe } from "lucide-react";
 import { CatalogPreview } from "../sections/FeatureBentoGrid";
 import { DataExplorerPreview } from "./DataExplorerPreview";
 import { MapPreview } from "./MapPreview";
+import { useElementWidth } from "../../hooks/useElementWidth";
+import { useIntervalWhen } from "../../hooks/useIntervalWhen";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 const TABS = [
@@ -39,26 +41,113 @@ export function HeroTripleDash() {
   const ref    = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px 0px" });
   const [tabIdx, setTabIdx] = useState(0);
-  const [scale,  setScale]  = useState(1);
+  const containerWidth = useElementWidth(ref);
+  const isMobile = containerWidth > 0 && containerWidth < 640;
+  const scale = containerWidth > 0 ? containerWidth / DESIGN_W : 1;
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const update = () => setScale(el.offsetWidth / DESIGN_W);
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    update();
-    return () => ro.disconnect();
+  useIntervalWhen(
+    () => setTabIdx(i => (i + 1) % TABS.length),
+    TAB_DURATION,
+    inView,
+  );
+
+  const handleTabClick = useCallback((index: number) => {
+    setTabIdx(index);
   }, []);
-
-  useEffect(() => {
-    if (!inView) return;
-    const t = setInterval(() => setTabIdx(i => (i + 1) % TABS.length), TAB_DURATION);
-    return () => clearInterval(t);
-  }, [inView]);
 
   const activeTab = TABS[tabIdx];
 
+  /* ── Mobile: native-size previews (no scaling), just like the sections below ── */
+  if (isMobile) {
+    return (
+      <div ref={ref} className="flex h-full flex-col overflow-hidden bg-base text-fg">
+        {/* Tab bar — compact */}
+        <div className="shrink-0 border-b border-border bg-surface">
+          <div className="flex">
+            {TABS.map((tab, i) => {
+              const isActive = i === tabIdx;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabClick(i)}
+                  className="relative flex flex-1 items-center justify-center gap-1 px-1 py-2.5 transition-colors"
+                >
+                  <tab.Icon
+                    className="h-3 w-3 shrink-0 transition-colors"
+                    style={{ color: isActive ? tab.color : "rgba(15,23,42,0.28)" }}
+                  />
+                  <span
+                    className="truncate text-[10px] font-semibold tracking-wide transition-colors"
+                    style={{ color: isActive ? "rgba(15,23,42,0.9)" : "rgba(15,23,42,0.35)" }}
+                  >
+                    {tab.label}
+                  </span>
+                  {isActive && (
+                    <motion.span
+                      layoutId="tab-underline-m"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
+                      style={{ backgroundColor: tab.color }}
+                      transition={{ duration: 0.3, ease: EASE_PREMIUM }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Auto-advance progress bar */}
+          <div className="h-[2px] overflow-hidden bg-border">
+            <motion.div
+              key={tabIdx}
+              className="h-full w-full rounded-full"
+              style={{ backgroundColor: activeTab.color + "80", transformOrigin: "left center" }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: TAB_DURATION / 1000, ease: "linear" }}
+            />
+          </div>
+        </div>
+
+        {/* Native-size preview — no ScaledPreview wrapper */}
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tabIdx}
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -18 }}
+              transition={{ duration: 0.26, ease: EASE_PREMIUM }}
+              className="h-full"
+            >
+              {tabIdx === 0 && <CatalogPreview />}
+              {tabIdx === 1 && <DataExplorerPreview />}
+              {tabIdx === 2 && <MapPreview />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="shrink-0 border-t border-border bg-surface px-3 py-1.5">
+          <div className="flex items-center">
+            <span className="text-[9px] text-fg-subtle">3 products · 1 platform · 500+ data items</span>
+            <div className="ml-auto flex items-center gap-1.5">
+              {TABS.map((t, i) => (
+                <motion.span
+                  key={t.id}
+                  animate={{ opacity: i === tabIdx ? 1 : 0.22, scale: i === tabIdx ? 1 : 0.75 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: t.color }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Desktop: existing scaled approach ── */
   return (
     <div ref={ref} className="h-full w-full overflow-hidden">
       <div
@@ -74,7 +163,7 @@ export function HeroTripleDash() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setTabIdx(i)}
+                onClick={() => handleTabClick(i)}
                 className="relative flex flex-1 items-center justify-center gap-2.5 px-6 py-4 transition-colors"
               >
                 <tab.Icon
@@ -104,10 +193,10 @@ export function HeroTripleDash() {
         <div className="h-[3px] overflow-hidden bg-border">
           <motion.div
             key={tabIdx}
-            className="h-full rounded-full"
-            style={{ backgroundColor: activeTab.color + "80" }}
-            initial={{ width: "0%" }}
-            animate={{ width: "100%" }}
+            className="h-full w-full rounded-full"
+            style={{ backgroundColor: activeTab.color + "80", transformOrigin: "left center" }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
             transition={{ duration: TAB_DURATION / 1000, ease: "linear" }}
           />
         </div>

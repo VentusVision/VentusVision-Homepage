@@ -1,4 +1,4 @@
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { GraduationCap, GitBranch } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
@@ -26,14 +26,18 @@ function toXY(angleDeg: number, r = RADIUS) {
 function Packet({ x1, y1, x2, y2, delay, color }: {
   x1: number; y1: number; x2: number; y2: number; delay: number; color: string;
 }) {
+  // Use x/y (CSS transform: translate) instead of cx/cy (SVG layout attributes).
+  // cx/cy mutations cause repaints on every frame; x/y are GPU-composited.
   return (
     <motion.circle
       r={3.5}
+      cx={x1}
+      cy={y1}
       fill={color}
       style={{ filter: `drop-shadow(0 0 4px ${color})` }}
       animate={{
-        cx: [x1, x2, x1],
-        cy: [y1, y2, y1],
+        x: [0, x2 - x1, 0],
+        y: [0, y2 - y1, 0],
       }}
       transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay }}
     />
@@ -41,6 +45,7 @@ function Packet({ x1, y1, x2, y2, delay, color }: {
 }
 
 function Constellation({ inView }: { inView: boolean }) {
+  const shouldReduce = useReducedMotion();
   return (
     <div className="relative mx-auto" style={{ width: 500, height: 500 }}>
 
@@ -74,7 +79,7 @@ function Constellation({ inView }: { inView: boolean }) {
                 animate={inView ? { pathLength: 1, opacity: 1 } : {}}
                 transition={{ duration: 0.7, delay: 0.3 + i * 0.12, ease: EASE_PREMIUM }}
               />
-              {inView && (
+              {inView && !shouldReduce && (
                 <Packet
                   x1={CX} y1={CY} x2={x} y2={y}
                   delay={0.8 + i * 0.4}
@@ -185,17 +190,22 @@ function ConstellationScaler({ inView }: { inView: boolean }) {
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const update = () => setScale(Math.min(1, el.offsetWidth / 500));
+    // Measure the parent's width so the 500px constellation child doesn't inflate el.offsetWidth
+    const update = () => {
+      const parentW = el.parentElement?.getBoundingClientRect().width ?? el.getBoundingClientRect().width;
+      setScale(Math.min(1, parentW / 500));
+    };
     const ro = new ResizeObserver(update);
-    ro.observe(el);
+    ro.observe(el.parentElement ?? el);
     update();
     return () => ro.disconnect();
   }, []);
 
   return (
-    <div ref={wrapRef} className="w-full">
-      <div style={{ height: `${500 * scale}px`, overflow: "hidden" }} className="flex justify-center">
-        <div style={{ transform: `scale(${scale})`, transformOrigin: "top center", flexShrink: 0 }}>
+    // overflow-hidden + min-w-0 prevent the fixed-size constellation from blowing out the grid cell
+    <div ref={wrapRef} className="w-full min-w-0 overflow-hidden">
+      <div style={{ height: `${500 * scale}px` }} className="overflow-hidden flex justify-center">
+        <div style={{ width: 500, height: 500, transform: `scale(${scale})`, transformOrigin: "top center", flexShrink: 0 }}>
           <Constellation inView={inView} />
         </div>
       </div>
@@ -239,6 +249,7 @@ export function TeamSection() {
             initial={{ opacity: 0, x: -32 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.1, ease: EASE_PREMIUM }}
+            className="min-w-0"
           >
             <h2 className="text-4xl font-extrabold tracking-tight text-fg sm:text-5xl">
               Who is <span className="text-brand">behind it?</span>
@@ -253,7 +264,7 @@ export function TeamSection() {
             </p>
 
             {/* Stats row */}
-            <div className="mt-8 flex gap-6">
+            <div className="mt-8 flex flex-wrap gap-4 sm:gap-6">
               {[
                 { value: "5",    label: "Team Members"    },
                 { value: "1",    label: "Semester"        },
@@ -284,7 +295,7 @@ export function TeamSection() {
             initial={{ opacity: 0, x: 32 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.2, ease: EASE_PREMIUM }}
-            className="flex justify-center"
+            className="flex min-w-0 justify-center overflow-hidden"
           >
             <ConstellationScaler inView={inView} />
           </motion.div>

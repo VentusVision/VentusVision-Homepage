@@ -1,5 +1,5 @@
-import { motion, useAnimation } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { useEffect, useRef, useCallback, memo } from "react";
 
 // ── Config ─────────────────────────────────────────────────────────────────
 // Scroll speed: higher = slower (seconds per full pass)
@@ -22,15 +22,18 @@ const DATA_STREAMS = [
 ];
 
 export function DataFlowBanner() {
+  const sectionRef = useRef<HTMLElement>(null);
   const copyRef   = useRef<HTMLDivElement>(null);
   const controls  = useAnimation();
   const widthRef  = useRef(0);
-  const [hovered, setHovered] = useState(false);
+  const isInView  = useInView(sectionRef);
 
   // Measure copy width once mounted (and on resize)
   useEffect(() => {
     const el = copyRef.current;
     if (!el) return;
+
+    let debounceId: ReturnType<typeof setTimeout> | undefined;
 
     const startLoop = (w: number) => {
       widthRef.current = w;
@@ -41,25 +44,20 @@ export function DataFlowBanner() {
     };
 
     const ro = new ResizeObserver(() => {
-      if (copyRef.current) startLoop(copyRef.current.offsetWidth);
+      if (debounceId !== undefined) clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        if (copyRef.current) startLoop(copyRef.current.offsetWidth);
+      }, 120);
     });
     ro.observe(el);
     startLoop(el.offsetWidth);
 
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      if (debounceId !== undefined) clearTimeout(debounceId);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Pause / resume on hover
-  useEffect(() => {
-    if (hovered) controls.stop();
-    else if (widthRef.current > 0) {
-      controls.start({
-        x: [0, -widthRef.current],
-        transition: { duration: DURATION_S, ease: "linear", repeat: Infinity, repeatType: "loop" },
-      });
-    }
-  }, [hovered, controls]);
 
   // Respect prefers-reduced-motion
   useEffect(() => {
@@ -70,12 +68,41 @@ export function DataFlowBanner() {
     return () => mq.removeEventListener("change", handler);
   }, [controls]);
 
+  // Pause the marquee entirely while scrolled out of view — no point
+  // burning CPU/battery animating something off-screen.
+  useEffect(() => {
+    if (!isInView) {
+      controls.stop();
+      return;
+    }
+    if (widthRef.current > 0) {
+      controls.start({
+        x: [0, -widthRef.current],
+        transition: { duration: DURATION_S, ease: "linear", repeat: Infinity, repeatType: "loop" },
+      });
+    }
+  }, [isInView, controls]);
+
+  const handleMouseEnter = useCallback(() => {
+    controls.stop();
+  }, [controls]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (widthRef.current > 0) {
+      controls.start({
+        x: [0, -widthRef.current],
+        transition: { duration: DURATION_S, ease: "linear", repeat: Infinity, repeatType: "loop" },
+      });
+    }
+  }, [controls]);
+
   return (
     <section
+      ref={sectionRef}
       id="data"
       className="relative overflow-hidden border-y border-border bg-surface py-8"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter} // Direkt verbunden
+      onMouseLeave={handleMouseLeave} // Direkt verbunden
     >
       {/* Edge fades */}
       <div
@@ -111,11 +138,11 @@ export function DataFlowBanner() {
   );
 }
 
-function MarqueeItem({ label }: { label: string }) {
+const MarqueeItem = memo(function MarqueeItem({ label }: { label: string }) {
   return (
     <span className="flex shrink-0 items-center gap-4 text-sm font-semibold uppercase tracking-widest text-fg-subtle">
       {label}
       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
     </span>
   );
-}
+});

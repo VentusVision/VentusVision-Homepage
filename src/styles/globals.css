@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent any fixed-size component from creating horizontal body overflow on mobile */
+html, body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 :root {
   --c-base:          #F7F9FC;
   --c-surface:       #FFFFFF;
@@ -23,11 +29,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
   body {
     background-color: var(--c-base);
     color: var(--c-fg);
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -46,4 +54,17 @@
 @keyframes cursor-blink {
   from { opacity: 1; }
   to   { opacity: 0; }
+}
+@keyframes ticker-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

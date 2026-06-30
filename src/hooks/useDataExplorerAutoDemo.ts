@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLatestRef } from "./useLatestRef";
 
 /** Adjust demo pacing here — all values in milliseconds */
 export const DEMO_TIMING = {
@@ -59,16 +60,12 @@ export function useDataExplorerAutoDemo({
 
   const pausedRef = useRef(false);
   const mountedRef = useRef(true);
-  const inViewRef = useRef(inView);
-  const selectedKeyRef = useRef(selectedKey);
-  const modeRef = useRef(mode);
+  const inViewRef = useLatestRef(inView);
+  const selectedKeyRef = useLatestRef(selectedKey);
+  const modeRef = useLatestRef(mode);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sequenceIdRef = useRef(0);
-
-  useEffect(() => { inViewRef.current = inView; }, [inView]);
-  useEffect(() => { selectedKeyRef.current = selectedKey; }, [selectedKey]);
-  useEffect(() => { modeRef.current = mode; }, [mode]);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);

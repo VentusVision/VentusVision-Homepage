@@ -1,5 +1,5 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Car, Truck, Gauge, BatteryCharging, Navigation, Cpu, Activity, Zap } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
@@ -71,7 +71,7 @@ const CONNECTIONS: ConnDef[] = [
 
 // ── PulseRing ─────────────────────────────────────────────────────────────────
 
-function PulseRing({ delay, baseOpacity }: { delay: number; baseOpacity: number }) {
+const PulseRing = memo(function PulseRing({ delay, baseOpacity }: { delay: number; baseOpacity: number }) {
   return (
     <motion.span
       className="absolute inset-0 rounded-full"
@@ -87,11 +87,11 @@ function PulseRing({ delay, baseOpacity }: { delay: number; baseOpacity: number 
       }}
     />
   );
-}
+});
 
 // ── RadarSweep ────────────────────────────────────────────────────────────────
 
-function RadarSweep({ size, opacity }: { size: number; opacity: number }) {
+const RadarSweep = memo(function RadarSweep({ size, opacity }: { size: number; opacity: number }) {
   const d = size * 3.0;
   return (
     <div
@@ -145,11 +145,11 @@ function RadarSweep({ size, opacity }: { size: number; opacity: number }) {
       />
     </div>
   );
-}
+});
 
 // ── DrivingLane ───────────────────────────────────────────────────────────────
 
-function DrivingLane({
+const DrivingLane = memo(function DrivingLane({
   lane,
   opacity,
   speed,
@@ -214,11 +214,11 @@ function DrivingLane({
       </motion.div>
     </div>
   );
-}
+});
 
 // ── FloatingIcon ──────────────────────────────────────────────────────────────
 
-function FloatingIcon({
+const FloatingIcon = memo(function FloatingIcon({
   floater,
   opacity,
   amplitude,
@@ -289,11 +289,11 @@ function FloatingIcon({
       </div>
     </motion.div>
   );
-}
+});
 
 // ── ConnectionLines (SVG) ─────────────────────────────────────────────────────
 
-function ConnectionLines({ connections, opacity }: { connections: ConnDef[]; opacity: number }) {
+const ConnectionLines = memo(function ConnectionLines({ connections, opacity }: { connections: ConnDef[]; opacity: number }) {
   const ref    = useRef<SVGSVGElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px 0px" });
 
@@ -344,7 +344,7 @@ function ConnectionLines({ connections, opacity }: { connections: ConnDef[]; opa
       ))}
     </svg>
   );
-}
+});
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
@@ -354,15 +354,34 @@ export function VehicleBackground({
   laneSpeed      = 32,
   floatAmplitude = 14,
 }: VehicleBackgroundConfig = {}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { margin: "-8% 0px", amount: 0.01 });
   const shouldReduce = useReducedMotion();
-  if (shouldReduce) return null;
+
+  // Mobile devices don't have the GPU budget for ~20 simultaneous animations
+  // per VehicleBackground instance (floaters, pulse rings, lanes, scan sweep).
+  // The background is purely decorative — disable it below the sm breakpoint.
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window === "undefined" ? false : window.matchMedia("(max-width: 639px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  if (shouldReduce || isMobile) return null;
 
   return (
     <div
+      ref={ref}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ zIndex: 0 }}
     >
+      {inView && (
+        <>
       {/* ── Layer 1: Slow scan-line sweep ── */}
       <motion.div
         className="pointer-events-none absolute inset-x-0"
@@ -387,6 +406,8 @@ export function VehicleBackground({
       {FLOATERS.map((floater, i) => (
         <FloatingIcon key={i} floater={floater} opacity={iconOpacity} amplitude={floatAmplitude} />
       ))}
+        </>
+      )}
     </div>
   );
 }

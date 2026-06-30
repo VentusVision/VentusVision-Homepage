@@ -113,7 +113,8 @@ export function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.08 }}
-              className="flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9"
+              aria-label="GitHub repository"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border sm:h-9 sm:w-9"
               style={{ borderColor: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.45)" }}
             >
               {/* Direktes SVG statt fehlerhaftem Import */}
@@ -136,7 +137,8 @@ export function Footer() {
               <motion.a
                 href="mailto:ventusvision.sep@mail.de"
                 whileHover={{ scale: 1.08 }}
-                className="flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9 transition-colors hover:bg-white/5 hover:text-white"
+                aria-label="Send email"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors hover:bg-white/5 hover:text-white sm:h-9 sm:w-9"
                 style={{ borderColor: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.45)" }}
                 title="Schreibe uns eine E-Mail"
               >
@@ -170,10 +172,10 @@ export function Footer() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
             variants={STAGGER}
-            className="grid grid-cols-3 gap-3 sm:gap-8"
+            className="grid min-w-0 grid-cols-3 gap-3 sm:gap-8"
           >
             {NAV.map((col) => (
-              <motion.div key={col.heading} variants={ITEM}>
+              <motion.div key={col.heading} variants={ITEM} className="min-w-0">
                 <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.2em] sm:mb-4 sm:text-[11px]" style={{ color: "rgba(37,99,235,0.8)" }}>
                   {col.heading}
                 </p>

@@ -1,14 +1,16 @@
 import {
-  motion, AnimatePresence, useInView,
+  motion, AnimatePresence, useInView, useReducedMotion,
   useMotionValue, useTransform, useMotionValueEvent, animate,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Zap, Wrench, Settings, Shield, Smartphone, Navigation, MapPin,
   Search, ZoomIn, ZoomOut, Link,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { useIntervalWhen } from "../../hooks/useIntervalWhen";
+import { useElementWidth } from "../../hooks/useElementWidth";
 import { EASE_PREMIUM } from "../../lib/motion";
 
 // ─── Map pins ───────────────────────────────────────────────────
@@ -45,8 +47,6 @@ const QUESTS = [
   { label: "Comfort & Assistance Tour", done: 0, total: 2 },
 ] as const;
 
-const SEARCH_TERMS = ["Safety & Incidents", "Charging & EV", "Fleet in Trouble"];
-
 // Quest trail through quest-marked pins
 const QUEST_PINS = PINS.filter(p => p.quest);
 const trailD = (() => {
@@ -60,85 +60,114 @@ const trailD = (() => {
   return d;
 })();
 
+const MapPinMarker = memo(function MapPinMarker({
+  pin,
+  inView,
+  isActive,
+  opacity,
+}: {
+  pin: PinDef;
+  inView: boolean;
+  isActive: boolean;
+  opacity: number;
+}) {
+  const { Icon } = pin;
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-full"
+      style={{ top: pin.top, left: pin.left }}
+      initial={{ opacity: 0, scale: 0.2, y: 20 }}
+      animate={inView ? { opacity, scale: 1, y: 0 } : { opacity: 0, scale: 0.2, y: 20 }}
+      transition={{ delay: pin.delay, duration: 0.42, ease: EASE_PREMIUM }}
+    >
+      <div style={{
+        animation: inView
+          ? `map-float ${pin.floatDuration ?? 2.8}s ease-in-out ${pin.delay + 0.55}s infinite`
+          : "none",
+      }}>
+        <div
+          className="relative flex h-9 w-9 items-center justify-center rounded-full border-2"
+          style={{
+            backgroundColor: pin.color,
+            borderColor: isActive ? "white" : "rgba(255,255,255,0.35)",
+            boxShadow: isActive
+              ? `0 0 0 3px white, 0 0 28px ${pin.color}`
+              : `0 0 16px ${pin.color}88, 0 3px 8px rgba(0,0,0,0.45)`,
+            transform: isActive ? "scale(1.25)" : "scale(1)",
+            transition: "transform 0.3s ease",
+          }}
+        >
+          <Icon className="h-4 w-4 text-white drop-shadow" />
+          <span
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              border: `2px solid ${pin.color}`,
+              transformOrigin: "center",
+              animation: inView
+                ? `map-ping 2.2s ease-out ${pin.delay + 0.9}s infinite`
+                : "none",
+            }}
+          />
+        </div>
+        <div className="mx-auto h-2.5 w-[2px] rounded-b-full"
+          style={{ backgroundColor: pin.color, opacity: 0.75 }} />
+      </div>
+    </motion.div>
+  );
+});
+
 export function MapPreview() {
-  const ref    = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, margin: "-60px 0px" });
+  const ref          = useRef<HTMLDivElement>(null);
+  const inView       = useInView(ref, { once: false, margin: "-60px 0px" });
+  const shouldReduce = useReducedMotion();
+  const containerW   = useElementWidth(ref);
+  const isMobile     = containerW > 0 && containerW < 480;
 
   // ── Zoom motion value: 1.40 (140%) → 1.85 (185%) ──
   const zoomMv      = useMotionValue(1.40);
   const [zoomPct, setZoomPct] = useState(140);
-  useMotionValueEvent(zoomMv, "change", (v) => setZoomPct(Math.round(v * 100)));
+  useMotionValueEvent(zoomMv, "change", (v) => {
+    const next = Math.round(v * 100);
+    setZoomPct((prev) => (prev === next ? prev : next));
+  });
 
   // Slider: thumb left position and track fill width
   const sliderLeft  = useTransform(zoomMv, [1.40, 1.85], ["0%", "100%"]);
   const trackFill   = useTransform(zoomMv, [1.40, 1.85], ["0%", "100%"]);
 
-  // Auto-animation state
-  const [catIdx,     setCatIdx]     = useState(0);
-  const [questIdx,   setQuestIdx]   = useState(0);
-  const [greyActive, setGreyActive] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [catIdx, setCatIdx] = useState(0);
 
-  // Typewriter for search
+  useIntervalWhen(() => setCatIdx(i => (i + 1) % CATS.length), 2400, inView && !shouldReduce);
+
   useEffect(() => {
-    if (!inView) return;
-    let termIdx = 0, charIdx = 0, deleting = false, paused = false;
-    let pauseTid: ReturnType<typeof setTimeout>;
+    if (!inView || shouldReduce) return;
 
-    const tid = setInterval(() => {
-      if (paused) return;
-      const term = SEARCH_TERMS[termIdx];
-      if (!deleting) {
-        charIdx = Math.min(charIdx + 1, term.length);
-        setSearchText(term.slice(0, charIdx));
-        if (charIdx === term.length) {
-          paused = true;
-          pauseTid = setTimeout(() => { paused = false; deleting = true; }, 1400);
-        }
-      } else {
-        charIdx = Math.max(charIdx - 1, 0);
-        setSearchText(term.slice(0, charIdx));
-        if (charIdx === 0) {
-          deleting = false;
-          termIdx = (termIdx + 1) % SEARCH_TERMS.length;
-        }
-      }
-    }, 75);
-
-    return () => { clearInterval(tid); clearTimeout(pauseTid); };
-  }, [inView]);
-
-  // Auto-cycle category, quest, grey-toggle + zoom
-  useEffect(() => {
-    if (!inView) return;
-    const c = setInterval(() => setCatIdx(i  => (i + 1) % CATS.length),    2400);
-    const q = setInterval(() => setQuestIdx(i => (i + 1) % QUESTS.length), 3100);
-    const g = setInterval(() => setGreyActive(v => !v),                     7200);
-
-    // Zoom: 140% → 185% → 140% loop — drives the actual map scale
     const zoomCtrl = animate(zoomMv, [1.40, 1.85, 1.40], {
       duration: 10,
       repeat: Infinity,
       ease: "easeInOut",
     });
 
-    return () => { clearInterval(c); clearInterval(q); clearInterval(g); zoomCtrl.stop(); };
-  }, [inView, zoomMv]);
+    return () => zoomCtrl.stop();
+  }, [inView, zoomMv, shouldReduce]);
 
   const activeCat = CATS[catIdx];
 
-  function pinOpacity(pin: PinDef) {
-    if (greyActive && !pin.quest) return 0.18;
+  const pinOpacity = useCallback((pin: PinDef) => {
     if (activeCat.pinLabel && pin.label === activeCat.pinLabel) return 1;
     if (activeCat.pinLabel && pin.label !== activeCat.pinLabel) return 0.28;
     return 1;
-  }
+  }, [activeCat.pinLabel]);
 
   return (
-    <div ref={ref} className="absolute inset-0 flex overflow-hidden text-fg">
+    <div ref={ref} className={cn("absolute inset-0 overflow-hidden text-fg", isMobile ? "flex flex-col" : "flex")}>
 
       {/* ── Map ─────────────────────────────────────────────── */}
-      <div className="relative min-w-0 flex-1 overflow-hidden" style={{ backgroundColor: "#D4CFBF" }}>
+      <div
+        className={cn("relative overflow-hidden", isMobile ? "w-full flex-[0_0_52%]" : "min-w-0 flex-1")}
+        style={{ backgroundColor: "#D4CFBF" }}
+      >
         {/* Single scaled layer — everything zooms together */}
         <motion.div
           className="absolute inset-0"
@@ -195,196 +224,194 @@ export function MapPreview() {
           </svg>
 
           {/* Pins */}
-          {PINS.map(pin => {
-            const { Icon } = pin;
-            const isActive = activeCat.pinLabel === pin.label;
-            return (
-              <motion.div
-                key={pin.label}
-                className="pointer-events-none absolute -translate-x-1/2 -translate-y-full"
-                style={{ top: pin.top, left: pin.left }}
-                initial={{ opacity: 0, scale: 0.2, y: 20 }}
-                animate={inView ? { opacity: pinOpacity(pin), scale: 1, y: 0 } : { opacity: 0, scale: 0.2, y: 20 }}
-                transition={{ delay: pin.delay, duration: 0.42, ease: EASE_PREMIUM }}
-              >
-                <div style={{
-                  animation: inView
-                    ? `map-float ${pin.floatDuration ?? 2.8}s ease-in-out ${pin.delay + 0.55}s infinite`
-                    : "none",
-                }}>
-                  <div
-                    className="relative flex h-9 w-9 items-center justify-center rounded-full border-2"
-                    style={{
-                      backgroundColor: pin.color,
-                      borderColor: isActive ? "white" : "rgba(255,255,255,0.35)",
-                      boxShadow: isActive
-                        ? `0 0 0 3px white, 0 0 28px ${pin.color}`
-                        : `0 0 16px ${pin.color}88, 0 3px 8px rgba(0,0,0,0.45)`,
-                      transform: isActive ? "scale(1.25)" : "scale(1)",
-                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                    }}
-                  >
-                    <Icon className="h-4 w-4 text-white drop-shadow" />
-                    <span
-                      className="pointer-events-none absolute inset-0 rounded-full"
-                      style={{
-                        border: `2px solid ${pin.color}`,
-                        transformOrigin: "center",
-                        animation: inView
-                          ? `map-ping 2.2s ease-out ${pin.delay + 0.9}s infinite`
-                          : "none",
-                      }}
-                    />
-                  </div>
-                  <div className="mx-auto h-2.5 w-[2px] rounded-b-full"
-                    style={{ backgroundColor: pin.color, opacity: 0.75 }} />
-                </div>
-              </motion.div>
-            );
-          })}
+          {PINS.map(pin => (
+            <MapPinMarker
+              key={pin.label}
+              pin={pin}
+              inView={inView}
+              isActive={activeCat.pinLabel === pin.label}
+              opacity={pinOpacity(pin)}
+            />
+          ))}
         </motion.div>
       </div>
 
       {/* ── Sidebar ──────────────────────────────────────────── */}
-      <div className="flex w-[190px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface sm:w-[280px] lg:w-[330px]">
+      {isMobile ? (
+        /* ── Mobile panel: compact horizontal strip below the map ── */
+        <div className="flex w-full flex-1 flex-col overflow-hidden border-t border-border bg-surface">
 
-        {/* Header */}
-        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-bold tracking-tight text-brand sm:text-[17px]">Map Explorer</p>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
-            </span>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:text-[12px]">Search</p>
-          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-base px-2.5 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
-            <Search className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
-            <span className="flex-1 font-mono text-[11px] text-fg-muted sm:text-[13px]">
-              {searchText}
-              <span
-                className="inline-block h-[10px] w-[1.5px] translate-y-[1px] bg-brand/70 sm:h-[12px]"
-                style={{ animation: "cursor-blink 0.55s linear infinite" }}
-              />
-            </span>
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Categories</p>
-          <div className="flex flex-wrap gap-1">
-            {CATS.map((cat, i) => {
-              const isActive = i === catIdx;
-              return (
-                <motion.span
-                  key={cat.label}
-                  animate={{
-                    backgroundColor: isActive ? cat.color + "22" : "transparent",
-                    borderColor: isActive ? cat.color + "80" : "rgba(15,23,42,0.14)",
-                    color: isActive ? cat.color : "rgba(15,23,42,0.45)",
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="flex cursor-default items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[12px]"
-                >
-                  <span
-                    className="h-[5px] w-[5px] rounded-full transition-colors duration-300 sm:h-[6px] sm:w-[6px]"
-                    style={{ backgroundColor: isActive ? cat.color : "rgba(15,23,42,0.2)" }}
-                  />
-                  {cat.label}
-                </motion.span>
-              );
-            })}
-          </div>
-
-          {/* All / None / Grey Unassigned row */}
-          <div className="mt-2 flex items-center gap-1 sm:mt-3 sm:gap-1.5">
-            {["All", "None"].map(lbl => (
-              <span key={lbl}
-                className="cursor-default rounded-md border border-border bg-base px-2 py-0.5 font-mono text-[10px] text-fg-subtle sm:px-2.5 sm:py-1 sm:text-[12px]">
-                {lbl}
+          {/* Header row + zoom */}
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
+            <div className="flex items-center gap-2">
+              <p className="text-[13px] font-bold tracking-tight text-brand">Map Explorer</p>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand" />
               </span>
-            ))}
-            <motion.span
-              animate={{
-                backgroundColor: greyActive ? "rgba(37,99,235,0.10)" : "transparent",
-                borderColor: greyActive ? "rgba(37,99,235,0.35)" : "rgba(15,23,42,0.12)",
-                color: greyActive ? "#2563EB" : "rgba(15,23,42,0.40)",
-              }}
-              transition={{ duration: 0.35 }}
-              className="cursor-default rounded-md border px-2 py-0.5 font-mono text-[10px] sm:px-2.5 sm:py-1 sm:text-[12px]"
-            >
-              Grey Unassigned
-            </motion.span>
-          </div>
-        </div>
-
-        {/* Quests */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5 sm:px-5 sm:py-3.5">
-          <p className="mb-2 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Quests</p>
-          <div className="flex flex-col gap-0.5 overflow-hidden sm:gap-1">
-            {QUESTS.map((q, i) => {
-              const isActive = i === questIdx;
-              return (
+            </div>
+            {/* Zoom control inline */}
+            <div className="flex items-center gap-1.5">
+              <ZoomOut className="h-3 w-3 text-fg-subtle" />
+              <div className="relative h-[3px] w-20 rounded-full bg-border">
+                <motion.div className="absolute left-0 top-0 h-full rounded-full bg-brand/30" style={{ width: trackFill }} />
                 <motion.div
+                  className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-white shadow-sm"
+                  style={{ left: sliderLeft }}
+                />
+              </div>
+              <ZoomIn className="h-3 w-3 text-fg-subtle" />
+              <span className="w-7 text-right font-mono text-[9px] tabular-nums text-fg-muted">{zoomPct}%</span>
+            </div>
+          </div>
+
+          {/* 2-column category grid */}
+          <div className="shrink-0 border-b border-border px-3 py-2">
+            <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-fg-subtle">Categories</p>
+            <div className="grid grid-cols-2 gap-1">
+              {CATS.map((cat, i) => {
+                const isActive = i === catIdx;
+                return (
+                  <motion.span
+                    key={cat.label}
+                    animate={{
+                      backgroundColor: isActive ? cat.color + "22" : "transparent",
+                      borderColor:     isActive ? cat.color + "80" : "rgba(15,23,42,0.14)",
+                      color:           isActive ? cat.color : "rgba(15,23,42,0.45)",
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className="flex cursor-default items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium"
+                  >
+                    <span
+                      className="h-[5px] w-[5px] shrink-0 rounded-full transition-colors duration-300"
+                      style={{ backgroundColor: isActive ? cat.color : "rgba(15,23,42,0.2)" }}
+                    />
+                    <span className="truncate">{cat.label}</span>
+                  </motion.span>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Compact quest list */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2 [scrollbar-width:none]">
+            <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-fg-subtle">Quests</p>
+            <div className="flex flex-col gap-0.5">
+              {QUESTS.map((q, i) => (
+                <div
                   key={q.label}
-                  animate={{
-                    backgroundColor: isActive ? "rgba(37,99,235,0.06)" : "transparent",
-                    borderColor: isActive ? "rgba(37,99,235,0.14)" : "transparent",
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center gap-1.5 rounded-lg border px-2 py-1.5 sm:gap-2.5 sm:px-3 sm:py-2"
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border px-2 py-1",
+                    i === 0 ? "border-brand/14 bg-brand/6" : "border-transparent",
+                  )}
                 >
-                  <Link className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
-                  <span className={cn(
-                    "flex-1 truncate text-[11px] transition-colors duration-300 sm:text-[13px]",
-                    isActive ? "font-semibold text-fg" : "text-fg-muted",
-                  )}>
+                  <Link className="h-3 w-3 shrink-0 text-fg-subtle" />
+                  <span className={cn("flex-1 truncate text-[11px]", i === 0 ? "font-semibold text-fg" : "text-fg-muted")}>
                     {q.label}
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] text-fg-subtle sm:text-[12px]">
-                    {q.done}/{q.total}
-                  </span>
-                  <motion.span
-                    animate={{ rotate: isActive ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="shrink-0 text-[10px] text-fg-subtle"
-                  >
-                    ∨
-                  </motion.span>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Zoom bar — thumb and fill reflect actual map scale */}
-        <div className="shrink-0 border-t border-border px-3 py-2 sm:px-5 sm:py-3">
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <ZoomOut className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
-            <div className="relative flex-1 h-[3px] rounded-full bg-border">
-              {/* dynamic fill */}
-              <motion.div
-                className="absolute left-0 top-0 h-full rounded-full bg-brand/30"
-                style={{ width: trackFill }}
-              />
-              {/* thumb synced to zoomMv */}
-              <motion.div
-                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-white shadow-card sm:h-3.5 sm:w-3.5"
-                style={{ left: sliderLeft }}
-              />
+                  <span className="shrink-0 font-mono text-[10px] text-fg-subtle">{q.done}/{q.total}</span>
+                </div>
+              ))}
             </div>
-            <ZoomIn className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
-            <span className="w-8 text-right font-mono text-[10px] tabular-nums text-fg-muted sm:w-10 sm:text-[12px]">
-              {zoomPct}%
-            </span>
           </div>
         </div>
-      </div>
+      ) : (
+        /* ── Desktop panel: vertical sidebar ── */
+        <div className="flex w-[190px] shrink-0 flex-col overflow-hidden border-l border-border bg-surface sm:w-[280px] lg:w-[330px]">
+
+          {/* Header */}
+          <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <div className="flex items-center justify-between">
+              <p className="text-[13px] font-bold tracking-tight text-brand sm:text-[17px]">Map Explorer</p>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+              </span>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:text-[12px]">Search</p>
+            <div className="flex items-center gap-1.5 rounded-lg border border-border bg-base px-2.5 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
+              <Search className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
+              <span className="flex-1 font-mono text-[11px] text-fg-subtle sm:text-[13px]">Search categories…</span>
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="shrink-0 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Categories</p>
+            <div className="flex flex-wrap gap-1">
+              {CATS.map((cat, i) => {
+                const isActive = i === catIdx;
+                return (
+                  <motion.span
+                    key={cat.label}
+                    animate={{
+                      backgroundColor: isActive ? cat.color + "22" : "transparent",
+                      borderColor:     isActive ? cat.color + "80" : "rgba(15,23,42,0.14)",
+                      color:           isActive ? cat.color : "rgba(15,23,42,0.45)",
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className="flex cursor-default items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[12px]"
+                  >
+                    <span
+                      className="h-[5px] w-[5px] rounded-full transition-colors duration-300 sm:h-[6px] sm:w-[6px]"
+                      style={{ backgroundColor: isActive ? cat.color : "rgba(15,23,42,0.2)" }}
+                    />
+                    {cat.label}
+                  </motion.span>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex items-center gap-1 sm:mt-3 sm:gap-1.5">
+              <span className="cursor-default rounded-md border border-brand/35 bg-brand/10 px-2 py-0.5 font-mono text-[10px] text-brand sm:px-2.5 sm:py-1 sm:text-[12px]">All</span>
+              <span className="cursor-default rounded-md border border-border bg-base px-2 py-0.5 font-mono text-[10px] text-fg-subtle sm:px-2.5 sm:py-1 sm:text-[12px]">None</span>
+              <span className="cursor-default rounded-md border border-border px-2 py-0.5 font-mono text-[10px] text-fg-subtle sm:px-2.5 sm:py-1 sm:text-[12px]">Grey Unassigned</span>
+            </div>
+          </div>
+
+          {/* Quests */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <p className="mb-2 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle sm:mb-2.5 sm:text-[12px]">Quests</p>
+            <div className="flex flex-col gap-0.5 overflow-hidden sm:gap-1">
+              {QUESTS.map((q, i) => (
+                <div
+                  key={q.label}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg border px-2 py-1.5 sm:gap-2.5 sm:px-3 sm:py-2",
+                    i === 0 ? "border-brand/14 bg-brand/6" : "border-transparent",
+                  )}
+                >
+                  <Link className="h-3.5 w-3.5 shrink-0 text-fg-subtle sm:h-4 sm:w-4" />
+                  <span className={cn("flex-1 truncate text-[11px] sm:text-[13px]", i === 0 ? "font-semibold text-fg" : "text-fg-muted")}>
+                    {q.label}
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-fg-subtle sm:text-[12px]">{q.done}/{q.total}</span>
+                  <span className="shrink-0 text-[10px] text-fg-subtle">{i === 0 ? "∧" : "∨"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Zoom bar */}
+          <div className="shrink-0 border-t border-border px-3 py-2 sm:px-5 sm:py-3">
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
+              <ZoomOut className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
+              <div className="relative flex-1 h-[3px] rounded-full bg-border">
+                <motion.div className="absolute left-0 top-0 h-full rounded-full bg-brand/30" style={{ width: trackFill }} />
+                <motion.div
+                  className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-white shadow-card sm:h-3.5 sm:w-3.5"
+                  style={{ left: sliderLeft }}
+                />
+              </div>
+              <ZoomIn className="h-3.5 w-3.5 text-fg-subtle sm:h-4 sm:w-4" />
+              <span className="w-8 text-right font-mono text-[10px] tabular-nums text-fg-muted sm:w-10 sm:text-[12px]">{zoomPct}%</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

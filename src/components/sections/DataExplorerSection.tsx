@@ -4,7 +4,9 @@ import { ArrowLeftRight, ChevronDown } from "lucide-react";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { cn } from "../../lib/utils";
 import { SectionBadge } from "../ui/SectionBadge";
+import { EXPLORER_Y_TICKS } from "../../lib/explorerChart";
 import { CATEGORIES, OEMS, DATA_MATRIX, type OEM } from "../../data/explorerData";
+import { useElementWidth } from "../../hooks/useElementWidth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Mode = "oem-by-category" | "category-by-oem";
@@ -19,9 +21,9 @@ interface Bar {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const OEM_BAR_COLOR  = "#06B6D4";
-const Y_TICKS        = [0, 20, 40, 60, 80, 100];
+const Y_TICKS        = EXPLORER_Y_TICKS;
 const SCALE          = 0.88; // 88% of chart height = 100% data value
-const X_AXIS_HEIGHT  = 72;   // px reserved for angled labels
+const X_AXIS_HEIGHT  = 72;   // px reserved for angled labels (desktop only)
 
 // ── OEM Brand Circle ──────────────────────────────────────────────────────────
 function BrandCircle({ oem, size = 28 }: { oem: OEM; size?: number }) {
@@ -53,16 +55,116 @@ function CategoryDot({ color, size = 8 }: { color: string; size?: number }) {
   );
 }
 
+// ── NEU: Einzelner Chart-Balken (Verhindert Re-Render der ganzen Section) ───
+function ChartBar({ bar, barH, i, chartKey, inView }: { bar: Bar; barH: number; i: number; chartKey: string; inView: boolean }) {
+  // Der Hover-State lebt jetzt HIER drinnen. Nur dieser Balken rendert neu!
+  const [isHov, setIsHov] = useState(false);
+
+  return (
+    <div
+      className="relative flex-1"
+      onMouseEnter={() => setIsHov(true)}
+      onMouseLeave={() => setIsHov(false)}
+    >
+      {/* OEM logo circle (only in oem-by-category mode) */}
+      {bar.oem && (
+        <motion.div
+          key={`logo-${chartKey}-${i}`}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: inView ? 1 : 0, scale: inView ? 1 : 0.5 }}
+          transition={{ duration: 0.4, ease: EASE_PREMIUM, delay: 0.12 + i * 0.04 }}
+          className="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-full"
+          style={{ bottom: `calc(${barH}% + 6px)` }}
+        >
+          <BrandCircle oem={bar.oem} size={26} />
+        </motion.div>
+      )}
+
+      {/* Pct label */}
+      {!isHov && (
+        <motion.span
+          key={`pct-${chartKey}-${i}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: inView ? 1 : 0 }}
+          transition={{ duration: 0.2, delay: 0.6 + i * 0.04 }}
+          className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] tabular-nums text-fg-muted"
+          style={{
+            bottom: bar.oem
+              ? `calc(${barH}% + 38px)` // above logo in OEM mode
+              : `calc(${barH}% + 6px)`, // above bar in category mode
+          }}
+        >
+          {bar.pct.toFixed(1)}%
+        </motion.span>
+      )}
+
+      {/* Hover tooltip */}
+      <AnimatePresence>
+        {isHov && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.9 }}
+            transition={{ duration: 0.14 }}
+            className="pointer-events-none absolute z-20 -translate-x-1/2 rounded-lg border border-border bg-surface px-3 py-2 shadow-card-md"
+            style={{ bottom: `calc(${barH}% + 44px)`, left: "50%" }}
+          >
+            <p className="whitespace-nowrap font-mono text-[11px] font-semibold text-fg">
+              {bar.label}
+            </p>
+            <p className="font-mono text-[11px] text-fg-muted">
+              {bar.pct.toFixed(1)}% coverage
+            </p>
+            <div className="absolute -bottom-[5px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rotate-45 border-b border-r border-border bg-surface" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bar */}
+      <motion.div
+        key={`bar-${chartKey}-${i}`}
+        className="absolute bottom-0 rounded-t-[3px]"
+        style={{
+          left:            "16%",
+          right:           "16%",
+          height:          `${barH}%`,
+          backgroundColor: bar.color,
+          transformOrigin: "bottom",
+          opacity:         isHov ? 1 : 0.82,
+          boxShadow:       isHov ? `0 0 20px ${bar.color}55` : "none",
+          transition:      "opacity 0.18s, box-shadow 0.18s",
+        }}
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: inView ? 1 : 0 }}
+        transition={{
+          duration: 0.65,
+          ease:     EASE_PREMIUM,
+          delay:    0.08 + i * 0.05,
+        }}
+      />
+    </div>
+  );
+}
+
 // ── Main Section ──────────────────────────────────────────────────────────────
 export function DataExplorerSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const cardRef    = useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { once: false, margin: "-80px 0px" });
+
+  // On narrow viewports switch to a mobile layout:
+  // – horizontal scrollable chip-legend above the bars instead of angled x-axis labels below
+  // – bars fill full chart height (no bottom padding for labels)
+  const cardWidth    = useElementWidth(cardRef);
+  const isMobile     = cardWidth > 0 && cardWidth < 640;
+  const xAxisHeight  = isMobile ? 0 : X_AXIS_HEIGHT;
 
   const [mode, setMode]                 = useState<Mode>("oem-by-category");
   const [selectedCategory, setCategory] = useState(CATEGORIES[4].key); // Maintenance & Diagnostics
   const [selectedOEM, setOEM]           = useState(OEMS[1].key);       // BMW
   const [dropdownOpen, setDropdown]     = useState(false);
-  const [hoveredBar, setHoveredBar]     = useState<number | null>(null);
+  
+  // HIER WURDE `hoveredBar` ENTFERNT!
 
   // ── Derived bars ─────────────────────────────────────────────────────────
   const bars = useMemo<Bar[]>(() => {
@@ -116,7 +218,7 @@ export function DataExplorerSection() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <section ref={sectionRef} id="explorer" className="relative bg-base px-6 py-28">
+    <section ref={sectionRef} id="explorer" className="relative overflow-x-clip bg-base px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-7xl">
 
         {/* Section header */}
@@ -140,6 +242,7 @@ export function DataExplorerSection() {
 
         {/* Explorer card */}
         <motion.div
+          ref={cardRef}
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.75, ease: EASE_PREMIUM, delay: 0.15 }}
@@ -182,16 +285,43 @@ export function DataExplorerSection() {
           </div>
 
           {/* Chart body */}
-          <div className="flex min-h-[540px] flex-col px-4 pb-5 pt-4">
+          <div className="flex min-h-[400px] flex-col px-4 pb-5 pt-4 sm:min-h-[540px]">
+
+            {/* ── Mobile chip legend (replaces angled x-axis labels) ── */}
+            {isMobile && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`chips-${chartKey}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {bars.map(bar => (
+                    <span
+                      key={bar.key}
+                      className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-base px-2.5 py-1 font-mono text-[10px] text-fg-muted"
+                    >
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: bar.color }} />
+                      {bar.label}
+                    </span>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
 
             {/* ── Chart row: rotated Y-label + plot ── */}
             <div className="relative flex min-h-0 flex-1 gap-0">
 
               {/* Rotated Y-axis label (clickable → dropdown) */}
-              <div className="relative flex w-10 shrink-0 items-center justify-center">
+              <div className="relative flex w-11 shrink-0 items-center justify-center sm:w-10">
                 <button
+                  type="button"
                   onClick={() => setDropdown(v => !v)}
-                  className="flex cursor-pointer items-center gap-1.5 transition-opacity hover:opacity-75"
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="listbox"
+                  className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 transition-opacity hover:opacity-75 sm:min-h-0 sm:min-w-0"
                   style={{
                     writingMode: "vertical-lr",
                     transform:   "rotate(180deg)",
@@ -261,7 +391,7 @@ export function DataExplorerSection() {
                   <div
                     key={tick}
                     className="pointer-events-none absolute left-0 right-0 flex items-center"
-                    style={{ bottom: `calc(${tick * SCALE}% + ${X_AXIS_HEIGHT}px)` }}
+                    style={{ bottom: `calc(${tick * SCALE}% + ${xAxisHeight}px)` }}
                   >
                     <span className="mr-2 w-8 shrink-0 text-right font-mono text-[10px] leading-none text-fg-subtle">
                       {tick}%
@@ -273,7 +403,7 @@ export function DataExplorerSection() {
                 {/* Bars + logo circles, absolute within plot area */}
                 <div
                   className="absolute flex"
-                  style={{ left: 40, right: 0, top: 0, bottom: X_AXIS_HEIGHT }}
+                  style={{ left: 40, right: 0, top: 0, bottom: xAxisHeight }}
                 >
                   <AnimatePresence mode="wait">
                     <motion.div
@@ -284,128 +414,49 @@ export function DataExplorerSection() {
                       transition={{ duration: 0.22 }}
                       className="flex flex-1 gap-1"
                     >
-                      {bars.map((bar, i) => {
-                        // absolute % scale: 100% data → SCALE*100% of div height
-                        const barH  = bar.pct * SCALE;
-                        const isHov = hoveredBar === i;
-
-                        return (
-                          <div
-                            key={bar.key}
-                            className="relative flex-1"
-                            onMouseEnter={() => setHoveredBar(i)}
-                            onMouseLeave={() => setHoveredBar(null)}
-                          >
-                            {/* OEM logo circle (only in oem-by-category mode) */}
-                            {bar.oem && (
-                              <motion.div
-                                key={`logo-${chartKey}-${i}`}
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: inView ? 1 : 0, scale: inView ? 1 : 0.5 }}
-                                transition={{ duration: 0.4, ease: EASE_PREMIUM, delay: 0.12 + i * 0.04 }}
-                                className="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-full"
-                                style={{ bottom: `calc(${barH}% + 6px)` }}
-                              >
-                                <BrandCircle oem={bar.oem} size={26} />
-                              </motion.div>
-                            )}
-
-                            {/* Pct label */}
-                            {!isHov && (
-                              <motion.span
-                                key={`pct-${chartKey}-${i}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: inView ? 1 : 0 }}
-                                transition={{ duration: 0.2, delay: 0.6 + i * 0.04 }}
-                                className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] tabular-nums text-fg-muted"
-                                style={{
-                                  bottom: bar.oem
-                                    ? `calc(${barH}% + 38px)` // above logo in OEM mode
-                                    : `calc(${barH}% + 6px)`, // above bar in category mode
-                                }}
-                              >
-                                {bar.pct.toFixed(1)}%
-                              </motion.span>
-                            )}
-
-                            {/* Hover tooltip */}
-                            <AnimatePresence>
-                              {isHov && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 4, scale: 0.9 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 4, scale: 0.9 }}
-                                  transition={{ duration: 0.14 }}
-                                  className="pointer-events-none absolute z-20 -translate-x-1/2 rounded-lg border border-border bg-surface px-3 py-2 shadow-card-md"
-                                  style={{ bottom: `calc(${barH}% + 44px)`, left: "50%" }}
-                                >
-                                  <p className="whitespace-nowrap font-mono text-[11px] font-semibold text-fg">
-                                    {bar.label}
-                                  </p>
-                                  <p className="font-mono text-[11px] text-fg-muted">
-                                    {bar.pct.toFixed(1)}% coverage
-                                  </p>
-                                  <div className="absolute -bottom-[5px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rotate-45 border-b border-r border-border bg-surface" />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Bar */}
-                            <motion.div
-                              key={`bar-${chartKey}-${i}`}
-                              className="absolute bottom-0 rounded-t-[3px]"
-                              style={{
-                                left:            "16%",
-                                right:           "16%",
-                                height:          `${barH}%`,
-                                backgroundColor: bar.color,
-                                transformOrigin: "bottom",
-                                opacity:         isHov ? 1 : 0.82,
-                                boxShadow:       isHov ? `0 0 20px ${bar.color}55` : "none",
-                                transition:      "opacity 0.18s, box-shadow 0.18s",
-                              }}
-                              initial={{ scaleY: 0 }}
-                              animate={{ scaleY: inView ? 1 : 0 }}
-                              transition={{
-                                duration: 0.65,
-                                ease:     EASE_PREMIUM,
-                                delay:    0.08 + i * 0.05,
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* X-axis labels — angled, matching real app */}
-                <div
-                  className="pointer-events-none absolute flex"
-                  style={{ left: 40, right: 0, bottom: 0, height: X_AXIS_HEIGHT }}
-                >
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`xl-${chartKey}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.22 }}
-                      className="flex flex-1 gap-1"
-                    >
-                      {bars.map(bar => (
-                        <div key={bar.key} className="relative flex-1">
-                          <span
-                            className="absolute top-2 left-1/2 block origin-top-left whitespace-nowrap font-mono text-[10px] text-fg-muted"
-                            style={{ transform: "translateX(-50%) rotate(-40deg)" }}
-                          >
-                            {bar.label}
-                          </span>
-                        </div>
+                      {bars.map((bar, i) => (
+                        <ChartBar
+                          key={bar.key}
+                          bar={bar}
+                          barH={bar.pct * SCALE}
+                          i={i}
+                          chartKey={chartKey}
+                          inView={inView}
+                        />
                       ))}
                     </motion.div>
                   </AnimatePresence>
                 </div>
+
+                {/* X-axis labels — angled, desktop only (mobile uses chip legend above) */}
+                {!isMobile && (
+                  <div
+                    className="pointer-events-none absolute flex"
+                    style={{ left: 40, right: 0, bottom: 0, height: xAxisHeight }}
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={`xl-${chartKey}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.22 }}
+                        className="flex flex-1 gap-1"
+                      >
+                        {bars.map(bar => (
+                          <div key={bar.key} className="relative flex-1">
+                            <span
+                              className="absolute top-2 left-1/2 block origin-top-left whitespace-nowrap font-mono text-[10px] text-fg-muted"
+                              style={{ transform: "translateX(-50%) rotate(-40deg)" }}
+                            >
+                              {bar.label}
+                            </span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )}
 
               </div>{/* /plot area */}
             </div>{/* /chart row */}
@@ -413,8 +464,9 @@ export function DataExplorerSection() {
             {/* ── Switch Axes button ── */}
             <div className="mt-4 flex items-center">
               <motion.button
+                type="button"
                 onClick={handleSwitchAxes}
-                className="flex items-center gap-2 rounded-full border border-border bg-base px-4 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-brand/40 hover:text-brand"
+                className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-base px-4 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:border-brand/40 hover:text-brand sm:min-h-0 sm:py-2"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >

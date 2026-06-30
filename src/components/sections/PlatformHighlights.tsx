@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { GlowImageFrame } from "../ui/GlowImageFrame";
 import { DataExplorerPreview } from "../ui/DataExplorerPreview";
+import { LazyWhenVisible } from "../ui/LazyWhenVisible";
 import { MapPreview } from "../ui/MapPreview";
 import { VehicleBackground } from "../ui/VehicleBackground";
 import { EASE_PREMIUM } from "../../lib/motion";
 import { SectionBadge } from "../ui/SectionBadge";
 import { cn } from "../../lib/utils";
+import { GlowImageFrame } from "../ui/GlowImageFrame";
+
+type PreviewKind = "explorer" | "map";
 
 interface Highlight {
   id: string;
@@ -16,7 +19,7 @@ interface Highlight {
   imageLabel: string;
   imageSrc?: string;
   overlay?: ReactNode;
-  preview?: ReactNode;
+  previewKind?: PreviewKind;
   reverse?: boolean;
   wide?: boolean;
   frameHeight?: string;
@@ -31,14 +34,14 @@ const HIGHLIGHTS: Highlight[] = [
     title: "Real-Time Analytics",
     description: (
       <>
-        An interactive bar chart showing data availability across car manufacturers — filter by{" "}
-        <span className="font-semibold text-fg">channel (B2B / B2C)</span>, status, and one of{" "}
-        <span className="text-brand font-semibold">10 color-coded categories</span>. Hover bars to
-        see exact counts, click to jump straight into the pre-filtered catalog.
+        Visualize data coverage across OEMs and categories. Pick a manufacturer or category via the{" "}
+        <span className="font-semibold text-fg">Y-axis selector</span>, hit{" "}
+        <span className="text-brand font-semibold">⇅ to flip the view</span> — and hover any bar
+        for exact coverage percentages.
       </>
     ),
     imageLabel: "Real-Time Analytics Preview",
-    preview: <DataExplorerPreview />,
+    previewKind: "explorer",
     wide: true,
     frameHeight: "h-[480px] sm:h-[640px] lg:h-[900px]",
     frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
@@ -57,16 +60,21 @@ const HIGHLIGHTS: Highlight[] = [
       </>
     ),
     imageLabel: "Interactive Journey Map Preview",
-    preview: <MapPreview />,
+    previewKind: "map",
     wide: true,
-    frameHeight: "h-[480px] sm:h-[640px] lg:h-[900px]",
+    frameHeight: "h-[620px] sm:h-[640px] lg:h-[900px]",
     frameBleed: "sm:-mx-10 lg:-mx-16 xl:-mx-24",
   },
 ];
 
+function HighlightPreview({ kind }: { kind: PreviewKind }) {
+  if (kind === "explorer") return <DataExplorerPreview />;
+  return <MapPreview />;
+}
+
 function HighlightRow({
   id, eyebrow, title, description,
-  imageLabel, imageSrc, overlay, preview,
+  imageLabel, imageSrc, overlay, previewKind,
   reverse, wide, frameHeight, frameBleed,
 }: Highlight) {
   if (wide) {
@@ -100,7 +108,11 @@ function HighlightRow({
             flat
             className={`${frameHeight ?? "h-[480px]"} w-full`}
           >
-            {preview}
+            {previewKind && (
+              <LazyWhenVisible className="absolute inset-0">
+                <HighlightPreview kind={previewKind} />
+              </LazyWhenVisible>
+            )}
             {overlay}
           </GlowImageFrame>
         </motion.div>
@@ -134,7 +146,11 @@ function HighlightRow({
         className={reverse ? "lg:order-1" : undefined}
       >
         <GlowImageFrame src={imageSrc} alt={title} label={imageLabel} className="h-72 w-full sm:h-96">
-          {preview}
+          {previewKind && (
+            <LazyWhenVisible className="absolute inset-0">
+              <HighlightPreview kind={previewKind} />
+            </LazyWhenVisible>
+          )}
           {overlay}
         </GlowImageFrame>
       </motion.div>
@@ -144,7 +160,7 @@ function HighlightRow({
 
 export function PlatformHighlights() {
   return (
-    <section className="relative bg-base px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
+    <section className="relative overflow-x-clip bg-base px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
       {/* Decorative vehicle animation layer — behind all content */}
       <VehicleBackground iconOpacity={0.14} laneOpacity={0.14} laneSpeed={38} floatAmplitude={15} />
 
